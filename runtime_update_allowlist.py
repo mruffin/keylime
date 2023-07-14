@@ -76,6 +76,7 @@ def dowload_new_release(amd, intel, version, update, generate):
             if os.path.isfile('/tmp/allowlist_config/SecurityPackage.gz'):
                 os.rename('/tmp/allowlist_config/SecurityPackage.gz', '/tmp/allowlist_config/SecurityPackage_Old.gz')
                 os.rename('/tmp/allowlist_config/SecurityPackage', '/tmp/allowlist_config/SecurityPackage_Old')
+
             if os.path.isfile('/tmp/allowlist_config/UpdatePackage.gz'):
                 os.rename('/tmp/allowlist_config/UpdatePackage.gz', '/tmp/allowlist_config/UpdatePackage_Old.gz')
                 os.rename('/tmp/allowlist_config/UpdatePackage', '/tmp/allowlist_config/UpdatePackage_Old')
@@ -121,12 +122,12 @@ def create_diff_release(currentFileDict, fileType):
 
     count2 = 0 
     # see if the version of the pkg has changed
-    for i in currentFileDict:
-        if currentFileDict[i] in oldFileList:
-            pkgname = currentFileDict[i] 
-            if currentFileDict[i]['Version'] != oldFileDict[pkgname]['Version']:
-                finalList.append(pkgname)
-                count +=1 
+    for i in curentFileList:
+        #print(i)
+        if i in oldFileList:
+            if currentFileDict[i]['Version'] != oldFileDict[i]['Version']:
+                finalList.append(i)
+                count2 +=1 
     print(">>>> " + str(count2) + " " + fileType + " packages have been updated")
     # for each pkg in the final list add the pkgname as the key and the valueDict as the value
     for i in finalList:
@@ -161,11 +162,7 @@ def create_allowlist_update(updateDict, filter_exec):
         for k in updatesList:
             fileDir = k.split('/')
             fileDir = "/".join(fileDir[:-1])
-            #fileDir = k.replace(k.split('/')[-1], "")
-            #print(fileDir)
             os.chdir(fileDir)
-            #path = os.getcwd()
-            #print(path)
             file_name = k.replace("./", startDir + pkgname + "/")
 
             #somewhere in here filter out .exec files... Does it matter who can execute the file???  ################################################
@@ -338,20 +335,28 @@ def main():
         print()
         print(">>> Measuring the Main Repository....\n")
         create_allowlist_update(mainDict, args.exec)
+        os.chdir("/tmp/allowlist_config/")
         print()
         print(">>> Measuring the Update Repository....\n")
         create_allowlist_update(updateDict, args.exec)
+        os.chdir("/tmp/allowlist_config/")
         print()
         print(">>> Measuring the Security Repository....\n")
         create_allowlist_update(securityDict, args.exec)
+        os.chdir("/tmp/allowlist_config/")
 
     elif args.update:
        # returns the difference between the two files
        update = create_diff_release(updateDict, fileType='update')
        security = create_diff_release(securityDict, fileType='security')
-
+       print()
+       print(">>> Measuring the Update Repository....\n")
        create_allowlist_update(update, args.exec)
+       os.chdir("/tmp/allowlist_config/")
+       print()
+       print(">>> Measuring the Security Repository....\n")
        create_allowlist_update(security, args.exec)
+       os.chdir("/tmp/allowlist_config/")
 
 class Parser(argparse.ArgumentParser):
     def error(self, message: str):
