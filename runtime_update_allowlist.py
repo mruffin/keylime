@@ -1,7 +1,7 @@
 '''
 Margie Ruffin 
 IBM Summer 2023
-Generate Updated Allowlist for Continious
+Generate Updated Allowlist for Continuous
 Runtime Integrity Monitoring
 '''
 
@@ -14,6 +14,7 @@ python3 runtime_update_allowlist.py -x -v jammy -g
 
 import os, shutil
 import os.path
+import stat
 import argparse
 import sys
 import hashlib
@@ -135,6 +136,10 @@ def create_diff_release(currentFileDict, fileType):
 
     return  finalDict
 
+def compare_sec_and_update():
+    
+    return
+
 # create a new file with file paths and Sha256Sum of the targeted files
 def create_allowlist_update(updateDict, filter_exec):
     if os.path.exists('temp/'):
@@ -143,10 +148,12 @@ def create_allowlist_update(updateDict, filter_exec):
         os.mkdir('temp/')
         os.chdir('temp/')
 
+    global hash
     hashDict = {}
     for i in updateDict:
         # for each package in the list, pull down their updated debian file
         path = 'http://archive.ubuntu.com/ubuntu/' + updateDict[i]['Filename'].strip()
+        #path = 'http://100.64.0.12/apt/s' + updateDict[i]['Filename'].strip()
         name = updateDict[i]['Filename'].split("/")[-1]
         startDir = "/tmp/allowlist_config/temp/"
         pkgname = name.replace(".deb", "")
@@ -165,28 +172,64 @@ def create_allowlist_update(updateDict, filter_exec):
             os.chdir(fileDir)
             file_name = k.replace("./", startDir + pkgname + "/")
 
-            #somewhere in here filter out .exec files... Does it matter who can execute the file???  ################################################
-            # https://stackoverflow.com/questions/1861836/checking-file-permissions-in-linux-with-python#:~:text=You%20can%20check%20file%20permissions,module%20for%20interpreting%20the%20results.&text=Use%20os.,access()%20with%20flags%20os.#
+            if filter_exec == True:
+                # do a check to see if the file is a symlink
+                if os.path.islink(file_name):
+                    print("This " + file_name + " is a symlink")
+                    #if it is, try to resolve it. If it isn't dangling
+                    real_path = os.path.realpath(file_name)
+                    check_file = os.path.isfile(real_path)
+                    if check_file == True:
+                        print(">>>> This file " + file_name + " is a symlink and can be resolved.... Do not Ignore")
+                        # check to see if file has exec permissions for any user
+                        st = os.stat(file_name) 
+                        exec_perm = bool(st.st_mode & stat.S_IXUSR or st.st_mode & stat.S_IXGRP or st.st_mode & stat.S_IXOTH)
+                        if exec_perm == True:
+                            print(True)
+                            hash = take_measurement(file_name, k)
+                            os.chdir(startDir + pkgname)
+                        else:
+                            print(">>>> This file " + file_name + " is not an executable ... Ignore") 
+                            os.chdir(startDir + pkgname)
+                            continue
+                    else:
+                        print(">>>> This file " + file_name + " is an unresolved symlink.... Ignore")  
+                        os.chdir(startDir + pkgname)
+                        continue       
+                else:
+                    #if not a symlink still check to see if file has exec permissions for any user
+                    st = os.stat(file_name) 
+                    exec_perm = bool(st.st_mode & stat.S_IXUSR or st.st_mode & stat.S_IXGRP or st.st_mode & stat.S_IXOTH)
+                    if exec_perm == True:
+                        print(">>>> This file " + file_name + " is an executable ... Do not Ignore")
+                        hash = take_measurement(file_name, k)
+                        os.chdir(startDir + pkgname)
+                    else:
+                        print(">>>> This file " + file_name + " is not an executable ... Ignore") 
+                        os.chdir(startDir + pkgname)
+                        continue
 
 
-            # do a check to see if the file is a symlink
-            if os.path.islink(file_name):
-                print("This " + file_name + " is a symlink")
-                #if it is, try to resolve it. If it isn't dangling
-                real_path = os.path.realpath(file_name)
-                print(real_path)
-                check_file = os.path.isfile(real_path)
-                if check_file == True:
-                    print(">>>> This file " + file_name + " is a symlink and can be resolved.... Do not Ignore")
+            if filter_exec == False:
+                # do a check to see if the file is a symlink
+                if os.path.islink(file_name):
+                    print("This " + file_name + " is a symlink")
+                    #if it is, try to resolve it. If it isn't dangling
+                    real_path = os.path.realpath(file_name)
+                    #print(real_path)
+                    check_file = os.path.isfile(real_path)
+                    if check_file == True:
+                        print(">>>> This file " + file_name + " is a symlink and can be resolved.... Do not Ignore")
+                        # check to see if file has exec permissions for any user
+                        hash = take_measurement(file_name, k)
+                        os.chdir(startDir + pkgname)
+                    else:
+                        print(">>>> This file " + file_name + " is an unresolved symlink.... Ignore")  
+                        os.chdir(startDir + pkgname)
+                        continue       
+                else:
                     hash = take_measurement(file_name, k)
                     os.chdir(startDir + pkgname)
-                else:
-                    print(">>>> This file " + file_name + " is an unresolved symlink.... Ignore")  
-                    os.chdir(startDir + pkgname)
-                    continue       
-            else:
-                hash = take_measurement(file_name, k)
-                os.chdir(startDir + pkgname)
 
             policyPath = k.replace("./", "/")
             #print(policyPath)
@@ -199,12 +242,12 @@ def create_allowlist_update(updateDict, filter_exec):
     return 
 
 def take_measurement(file_name, k):
-    #hash the file        
+    #hash the file 
     hash_sha256 = hashlib.sha256()
     with open(file_name, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             hash_sha256.update(chunk)
-            global hash
+            #global hash
             hash = hash_sha256.hexdigest()
     print(">>>> Filename " + k + "  " + hash)
     return hash
@@ -226,7 +269,7 @@ def create_paths_list(path, name):
         if pathsList[i].endswith("/"):
             trash.append(pathsList[i])
         else:
-            print(">>> File to measure: " + pathsList[i])
+            print(">>> Potential File to measure: " + pathsList[i])
         
     s = set(trash)
     cleanList = [x for x in pathsList if x not in s]
@@ -385,61 +428,3 @@ with open(file_name) as f:
     sha256hash = hashlib.sha256(data.encode('utf-8')).hexdigest()
     print (sha256hash)
 '''
-
-"""     if amd == True: 
-    try: 
-        update_path = 'http://archive.ubuntu.com/ubuntu/dists/' + version + '-updates/main/binary-amd64/Packages.gz'
-        security_path = 'http://archive.ubuntu.com/ubuntu/dists/' + version + '-security/main/binary-amd64/Packages.gz'
-
-        try:        
-            r = requests.get(update_path)
-            open(uname , 'wb').write(r.content)
-            with gzip.open(uname, 'rb') as f_in:
-                with open('UpdatePackage', 'wb') as f_out:
-                    print(">>>>Opening File " + uname + "...")
-                    shutil.copyfileobj(f_in, f_out)
-            print(">>>> Extracting file from " + uname + "...")
-        except:
-            print(">>>> The Update Package file was not able to be downloaded and/or extracted")
-
-        try: 
-            q = requests.get(security_path)
-            open(sname , 'wb').write(q.content)
-            with gzip.open(sname, 'rb') as f_in:
-                with open('SecurityPackage', 'wb') as f_out:
-                    print(">>>> Opening File " + sname + "...")
-                    shutil.copyfileobj(f_in, f_out)
-            print(">>>> Extracting file from " + sname + "...")
-        except:
-            print(">>>> The Security Package file was not able to be downloaded and/or extracted")
-    except:
-        print(">>>> Error: No files downloaded") """
-
-"""     if intel == True:
-    try:
-        update_path = 'http://archive.ubuntu.com/ubuntu/dists/' + version + '-updates/main/binary-i386/Packages.gz'
-        security_path = 'http://archive.ubuntu.com/ubuntu/dists/' + version + '-security/main/binary-i386/Packages.gz'
-
-        try:        
-            r = requests.get(update_path)
-            open(uname , 'wb').write(r.content)
-            with gzip.open(uname, 'rb') as f_in:
-                with open('UpdatePackage', 'wb') as f_out:
-                    print(">>>> Opening File " + uname + "...")
-                    shutil.copyfileobj(f_in, f_out)
-            print(">>>> Extracting file from " + uname + "...")
-        except:
-            print(">>>> The Update Package file was not able to be downloaded and/or extracted")
-
-        try: 
-            q = requests.get(security_path)
-            open(sname , 'wb').write(q.content)
-            with gzip.open(sname, 'rb') as f_in:
-                with open('SecurityPackage', 'wb') as f_out:
-                    print(">>>> Opening File " + sname + "...")
-                    shutil.copyfileobj(f_in, f_out)
-            print(">>>> Extracting file from " + sname + "...")
-        except:
-            print(">>>> The Security Package file was not able to be downloaded and/or extracted")
-    except:
-        print(">>>> Error: No files downloaded") """
