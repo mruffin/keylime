@@ -1,7 +1,7 @@
 '''
 Margie Ruffin 
 IBM Summer 2023
-Generate Updated Allowlist for Continuous
+Generate Updated Allowlist for Continious
 Runtime Integrity Monitoring
 '''
 
@@ -38,7 +38,8 @@ def download_new_release_files(path, filename):
                 shutil.copyfileobj(f_in, f_out)
         print(">>>> Extracting file from " + filename + "...")
     except:
-        print(">>>> The " +  filename + "Package file was not able to be downloaded and/or extracted")
+        print(">>>> The " +  filename + " Package file was not able to be downloaded and/or extracted")
+        sys.exit(1)
     return
 
 # download new ubuntu release put indide /tmp/allowlist_config folder on machine
@@ -66,9 +67,15 @@ def dowload_new_release(amd, intel, version, update, generate):
     rname = 'UpdatePackage.gz'
     sname = 'SecurityPackage.gz'
 
-    main_path = 'http://archive.ubuntu.com/ubuntu/dists/' + version + '/main/' + binary + '/Packages.gz'
-    regular_path = 'http://archive.ubuntu.com/ubuntu/dists/' + version + '-updates/main/' + binary + '/Packages.gz'
-    security_path = 'http://archive.ubuntu.com/ubuntu/dists/' + version + '-security/main/' + binary + '/Packages.gz'
+    #Local Computer
+    #main_path = 'http://archive.ubuntu.com/ubuntu/dists/' + version + '/main/' + binary + '/Packages.gz'
+    #regular_path = 'http://archive.ubuntu.com/ubuntu/dists/' + version + '-updates/main/' + binary + '/Packages.gz'
+    #security_path = 'http://archive.ubuntu.com/ubuntu/dists/' + version + '-security/main/' + binary + '/Packages.gz'
+
+    #Mirror Files
+    main_path = 'http://100.64.0.12/apt/mirror/archive.ubuntu.com/ubuntu/dists/' + version + '/main/' + binary + '/Packages.gz'
+    regular_path = 'http://100.64.0.12/apt/mirror/archive.ubuntu.com/ubuntu/dists/' + version + '-updates/main/' + binary + '/Packages.gz'
+    security_path = 'http://100.64.0.12/apt/mirror/archive.ubuntu.com/ubuntu/dists/' + version + '-security/main/' + binary + '/Packages.gz'
     
     try:
         if update == True:
@@ -136,25 +143,57 @@ def create_diff_release(currentFileDict, fileType):
 
     return  finalDict
 
-def compare_sec_and_update():
+# compare the security pkgs file to the updates pkgs file to see if any have been repeated
+def compare_sec_and_update(updateDict, securityDict):
+
+    # print(">>>> Comparing the Security to Update Package File")
+    # updateFileList = list(updateDict.keys())
+    # securityFileList = list(securityDict.keys())
+    # mainList = []
+    # compareList = []
+    # finalDict = {}
+    # count = 0
+
+    # for uname in updateFileList:
+    #     if uname not in securityFileList:
+    #         mainList.append(uname)
+    #     else:
+    #         compareList.append(uname)
+    #         count += 1
+    
+    # for sname in securityFileList:
+    #     if sname not in updateFileList and sname not in compareList:
+    #         mainList.append(sname)
+    #     else:
+    #         compareList.append(sname)
+    #         count += 1
+
+    # for i in compareList:
+    #     if updateDict[i]['Version'] == securityDict[i]['Version']:
+    #         mainList.append(i)
+    #     # if the versions aren't the same, we need both. Add to Final Dict    
+    #     else:
+    #         finalDict[i] = updateDict[i]
     
     return
 
 # create a new file with file paths and Sha256Sum of the targeted files
 def create_allowlist_update(updateDict, filter_exec):
+    global hash
     if os.path.exists('temp/'):
             os.chdir('temp/')
     else:
         os.mkdir('temp/')
         os.chdir('temp/')
-
-    global hash
+    
     hashDict = {}
     for i in updateDict:
         # for each package in the list, pull down their updated debian file
-        path = 'http://archive.ubuntu.com/ubuntu/' + updateDict[i]['Filename'].strip()
-        #path = 'http://100.64.0.12/apt/s' + updateDict[i]['Filename'].strip()
+        #path = 'http://archive.ubuntu.com/ubuntu/' + updateDict[i]['Filename'].strip()
+        path = 'http://100.64.0.12/apt/mirror/archive.ubuntu.com/ubuntu/' + updateDict[i]['Filename'].strip()
+        print(path)
         name = updateDict[i]['Filename'].split("/")[-1]
+        print(name)
         startDir = "/tmp/allowlist_config/temp/"
         pkgname = name.replace(".deb", "")
         print()
@@ -241,6 +280,7 @@ def create_allowlist_update(updateDict, filter_exec):
         cleanup(startDir)
     return 
 
+# take the hash (measurement) of the individual files inside the package
 def take_measurement(file_name, k):
     #hash the file 
     hash_sha256 = hashlib.sha256()
@@ -248,9 +288,9 @@ def take_measurement(file_name, k):
         for chunk in iter(lambda: f.read(4096), b""):
             hash_sha256.update(chunk)
             #global hash
-            hash = hash_sha256.hexdigest()
-    print(">>>> Filename " + k + "  " + hash)
-    return hash
+        measurement = hash_sha256.hexdigest()
+    print(">>>> Filename " + k + "  " + measurement)
+    return measurement
 
 # create a list of file paths for each file in .deb package
 def create_paths_list(path, name):
@@ -379,6 +419,10 @@ def main():
         print(">>> Measuring the Main Repository....\n")
         create_allowlist_update(mainDict, args.exec)
         os.chdir("/tmp/allowlist_config/")
+
+        #compare update to security to see what files and their versions are the same 
+        #compare_sec_and_update(updateDict, securityDict)
+
         print()
         print(">>> Measuring the Update Repository....\n")
         create_allowlist_update(updateDict, args.exec)
@@ -389,9 +433,13 @@ def main():
         os.chdir("/tmp/allowlist_config/")
 
     elif args.update:
-       # returns the difference between the two files
+       # returns the difference between the two file types old vs new
        update = create_diff_release(updateDict, fileType='update')
        security = create_diff_release(securityDict, fileType='security')
+       
+       #compare update to security to see what files and their versions are the same 
+       #compare_sec_and_update(update, security)
+
        print()
        print(">>> Measuring the Update Repository....\n")
        create_allowlist_update(update, args.exec)
