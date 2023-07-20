@@ -146,34 +146,42 @@ def create_diff_release(currentFileDict, fileType):
 # compare the security pkgs file to the updates pkgs file to see if any have been repeated
 def compare_sec_and_update(updateDict, securityDict):
 
-    # print(">>>> Comparing the Security to Update Package File")
-    # updateFileList = list(updateDict.keys())
-    # securityFileList = list(securityDict.keys())
-    # mainList = []
-    # compareList = []
-    # finalDict = {}
-    # count = 0
+    print(">>>> Comparing the Security to Update Package File")
+    updateFileList = list(updateDict.keys())
+    securityFileList = list(securityDict.keys())
+    duplicateList = []
+    finalDict = {}
+    count = 0
 
-    # for uname in updateFileList:
-    #     if uname not in securityFileList:
-    #         mainList.append(uname)
-    #     else:
-    #         compareList.append(uname)
-    #         count += 1
-    
-    # for sname in securityFileList:
-    #     if sname not in updateFileList and sname not in compareList:
-    #         mainList.append(sname)
-    #     else:
-    #         compareList.append(sname)
-    #         count += 1
+    '''we need to compare the name and versions of the packages 
+    if the filename is found in the 2nd list then go thru the dict and compare the two versions. If they are the same
+    take the name out of (remove) both of the lists and put it in the final list,. Keep count of how many are dubplcates.
+    then once all are taken out of the lists combine the security and update lists with their unique files and then add the final list to them update final dict'''
 
-    # for i in compareList:
-    #     if updateDict[i]['Version'] == securityDict[i]['Version']:
-    #         mainList.append(i)
-    #     # if the versions aren't the same, we need both. Add to Final Dict    
-    #     else:
-    #         finalDict[i] = updateDict[i]
+    # go through one list and compare the file names. If names and version matches, add to duplicate list and remove from other two lists.
+    # we only want to see it once.
+    for name in updateFileList:
+        if name in securityFileList and updateDict[name]['Version'] == securityDict[name]['Version']:
+            duplicateList.append(name)
+            updateFileList.remove(name)
+            securityFileList.remove(name)
+            count += 1
+
+    print('>>>> There are ' + str(len(updateFileList)) + ' unique Update Packages')
+    print('>>>> There are ' + str(len(securityFileList)) + ' unique Security Packages')
+    print('>>>> There are ' + str(count) + ' duplicate files between Security and Update Releases')
+    print('>>>> Creating final list')
+    print()
+
+    #create a final dictionary to use
+    for i in updateFileList:
+        finalDict[i] = updateDict[i]
+
+    for k in securityFileList:
+        finalDict[k] = securityDict[k]
+
+    for l in duplicateList:
+        finalDict[l] = securityDict[l]
     
     return
 
@@ -199,7 +207,7 @@ def create_allowlist_update(updateDict, filter_exec):
         print()
         print(">>> Package Name: " + pkgname)
 
-        # extract the files we want to measure
+        # extract the files we want to measure into a list
         updatesList = create_paths_list(path, name)
         # go into the dir of the extracted debian package
         os.chdir(pkgname)
@@ -303,16 +311,24 @@ def create_paths_list(path, name):
     #print(result)
 
     pathsList = result.splitlines()
+    mainList = []
     #print(pathsList)
     trash = []
-    for i in range(len(pathsList)):
-        if pathsList[i].endswith("/"):
-            trash.append(pathsList[i])
+    for i in pathsList:
+        if '\\\\' in i:
+            edited_path = i.replace('\\\\', '\\')
+            mainList.append(edited_path)
         else:
-            print(">>> Potential File to measure: " + pathsList[i])
+            mainList.append(i)
+
+    for k in mainList:
+        if k.endswith("/"):
+            trash.append(k)
+        else:
+            print(">>> Potential File to measure: " + k) 
         
     s = set(trash)
-    cleanList = [x for x in pathsList if x not in s]
+    cleanList = [x for x in mainList if x not in s]
     #print(cleanList)
     #print(len(cleanList))
     return cleanList
@@ -417,20 +433,26 @@ def main():
     if args.generate:
         print()
         print(">>> Measuring the Main Repository....\n")
+        finalDict = compare_sec_and_update(updateDict, securityDict)
         create_allowlist_update(mainDict, args.exec)
         os.chdir("/tmp/allowlist_config/")
 
         #compare update to security to see what files and their versions are the same 
-        #compare_sec_and_update(updateDict, securityDict)
+        finalDict = compare_sec_and_update(updateDict, securityDict)
 
         print()
-        print(">>> Measuring the Update Repository....\n")
-        create_allowlist_update(updateDict, args.exec)
+        print(">>> Measuring the Security and Update Repository....\n")
+        create_allowlist_update(finalDict, args.exec)
         os.chdir("/tmp/allowlist_config/")
         print()
-        print(">>> Measuring the Security Repository....\n")
-        create_allowlist_update(securityDict, args.exec)
-        os.chdir("/tmp/allowlist_config/")
+
+        # print(">>> Measuring the Update Repository....\n")
+        # create_allowlist_update(updateDict, args.exec)
+        # os.chdir("/tmp/allowlist_config/")
+        # print()
+        # print(">>> Measuring the Security Repository....\n")
+        # create_allowlist_update(securityDict, args.exec)
+        # os.chdir("/tmp/allowlist_config/")
 
     elif args.update:
        # returns the difference between the two file types old vs new
@@ -438,16 +460,21 @@ def main():
        security = create_diff_release(securityDict, fileType='security')
        
        #compare update to security to see what files and their versions are the same 
-       #compare_sec_and_update(update, security)
+       finalDict = compare_sec_and_update(update, security)
 
        print()
-       print(">>> Measuring the Update Repository....\n")
-       create_allowlist_update(update, args.exec)
+       print(">>> Measuring the Security and Update Repository....\n")
+       create_allowlist_update(finalDict, args.exec)
        os.chdir("/tmp/allowlist_config/")
        print()
-       print(">>> Measuring the Security Repository....\n")
-       create_allowlist_update(security, args.exec)
-       os.chdir("/tmp/allowlist_config/")
+
+    #    print(">>> Measuring the Update Repository....\n")
+    #    create_allowlist_update(update, args.exec)
+    #    os.chdir("/tmp/allowlist_config/")
+    #    print()
+    #    print(">>> Measuring the Security Repository....\n")
+    #    create_allowlist_update(security, args.exec)
+    #    os.chdir("/tmp/allowlist_config/")
 
 class Parser(argparse.ArgumentParser):
     def error(self, message: str):
