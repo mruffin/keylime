@@ -183,7 +183,7 @@ def compare_sec_and_update(updateDict, securityDict):
     for l in duplicateList:
         finalDict[l] = securityDict[l]
     
-    return
+    return finalDict
 
 # create a new file with file paths and Sha256Sum of the targeted files
 def create_allowlist_update(updateDict, filter_exec):
@@ -373,7 +373,7 @@ def write_allowlist(hashDict):
     # if this file doesn't exisit we will create it and begin appending measurements to it.
     # if it does exisit already (have previously run this script) then simply open it and append to it
     print(">>>> Writing package to allowlist")
-    with open("/tmp/allowlist_config/myfile.txt", "a+") as f:
+    with open("/tmp/allowlist_config/myfile2.txt", "a+") as f:
         for i in hashDict:
             f.write(hashDict[i] + "  " + i + "\n")
     f.close()
@@ -438,7 +438,7 @@ def main():
         os.chdir("/tmp/allowlist_config/")
 
         #compare update to security to see what files and their versions are the same 
-        finalDict = compare_sec_and_update(updateDict, securityDict)
+        #finalDict = compare_sec_and_update(updateDict, securityDict)
 
         print()
         print(">>> Measuring the Security and Update Repository....\n")
