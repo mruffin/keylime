@@ -194,7 +194,7 @@ def create_allowlist_update(updateDict, filter_exec):
         os.mkdir('temp/')
         os.chdir('temp/')
     
-    hashDict = {}
+   
     for i in updateDict:
         # for each package in the list, pull down their updated debian file
         #path = 'http://archive.ubuntu.com/ubuntu/' + updateDict[i]['Filename'].strip()
@@ -206,6 +206,7 @@ def create_allowlist_update(updateDict, filter_exec):
         pkgname = name.replace(".deb", "")
         print()
         print(">>> Package Name: " + pkgname)
+        hashDict = {}
 
         # extract the files we want to measure into a list
         updatesList = create_paths_list(path, name)
