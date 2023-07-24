@@ -1,0 +1,36 @@
+{
+    "hostosboots": [
+        {
+            "tag": "shimx64.efi,grubx64.efi,vmlinuz-5.4.0-91-generic,initrd.img-5.4.0-91-generic",
+            "shim_authcode_sha256": "0xdbffd70a2c43fd2c1931f18b8f8c08c5181db15f996f747dfed34def52fad036",
+            "grub_authcode_sha256": "0x412ce775fe05b194ce64441443aa721ad8b7dedb8e4f5e40481633d596d5b842",
+            "kernel_authcode_sha256": "0x03910cd3da2eefac39ce0bedf071dadf4e6b0a536121bd8e1f41f751aae3925e",
+            "kernel_plain_sha256": "0x5c6120cddb77ba236333081e69ac4f790d6983a899047df0e728bf1ab2b84afc",
+            "initrd_plain_sha256": "0xa1457f95224f364ab3c12f5ce24190d8c5cc0ba2e17259a2556e3a860259a96c"
+        },
+        {
+            "tag": "sdebuilder_kubernetes_ubuntu_focal_amd64-5.4.0-Thu_26_May_2022_01_36_41_PM_UTC-5.4.0-110-generic",
+            "shim_authcode_sha256": "0xdbffd70a2c43fd2c1931f18b8f8c08c5181db15f996f747dfed34def52fad036",
+            "grub_authcode_sha256": "0x412ce775fe05b194ce64441443aa721ad8b7dedb8e4f5e40481633d596d5b842",
+            "kernel_authcode_sha256": "0x227e6bed66a554ef96ffad9a9d18271d9cbcfa3cbb60e28a5bc9dc06515c27b3",
+            "kernel_plain_sha256": "0x1ce091e872f32580a7a61c4c937153580db51e5a51b4fdd72a2be3e2426f834f",
+            "initrd_plain_sha256": "0xcb8a46b60f1ab3bd3bbcbad44df16c082c404da95d6818eb6b44bee2a9c4419f"
+        },
+        {
+            "tag": "sdebuilder_kubebootstrap_ubuntu_jammy_amd64-10-17-22-5.15.0-50-generic",
+            "shim_authcode_sha256": "0xdbffd70a2c43fd2c1931f18b8f8c08c5181db15f996f747dfed34def52fad036",
+            "grub_authcode_sha256": "0xacc00aad4b0413a8b349b4493f95830da6a7a44bd6fc1579f6f53c339c26cb05",
+            "kernel_authcode_sha256": "0xd968af6fbb6210352455d1c67b49d7b3c414361c9ea1d2828ef15f6d5bac4d19",
+            "kernel_plain_sha256": "0x2ae3edb0730ea74d74ed76da2f297888abd9a990ce95dbb51e7e088b74680292",
+            "initrd_plain_sha256": "0x0e4f26020ca2eebd06f7cb1f28c665888902aa1724e87060226caa3e2b12bc8a"
+        },
+        {
+            "tag": "sdebuilder_kubernetes_ubuntu_jammy_amd64-11-15-22-5.15.0-50-generic",
+            "shim_authcode_sha256": "0xdbffd70a2c43fd2c1931f18b8f8c08c5181db15f996f747dfed34def52fad036",
+            "grub_authcode_sha256": "0xacc00aad4b0413a8b349b4493f95830da6a7a44bd6fc1579f6f53c339c26cb05",
+            "kernel_authcode_sha256": "0xd968af6fbb6210352455d1c67b49d7b3c414361c9ea1d2828ef15f6d5bac4d19",
+            "kernel_plain_sha256": "0x2ae3edb0730ea74d74ed76da2f297888abd9a990ce95dbb51e7e088b74680292",
+            "initrd_plain_sha256": "0x411a773dce24fddca247c8439182bf265504abb379be18f0f76df6ed3f575148"
+        }
+    ]
+}
