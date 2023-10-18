@@ -1,18 +1,6 @@
-import os, shutil
-import os.path
-import stat
-import argparse
-import sys
-import hashlib
-import requests
-import gzip
-import shutil
-import subprocess
-import time
-import re
 import runtimeconf as cfg
 import download_release as dwn
-import datetime
+
 
 
 # creates nested dictionary of all packages {package: {spec:description}}
