@@ -1,8 +1,11 @@
+import datetime
+
 mainVars = {
     'tmpDir' : '/tmp/allowlist_config/',
     'mainPath' : '/tmp/allowlist_config/MainRepo',
     'updatePath' : '/tmp/allowlist_config/UpdatePackage',
-    'securityPath' : '/tmp/allowlist_config/SecurityPackage'
+    'securityPath' : '/tmp/allowlist_config/SecurityPackage',
+    'allowlist': "/tmp/allowlist_config/allowlist_" + str(datetime.date.today()) + ".txt"
 
 }
 

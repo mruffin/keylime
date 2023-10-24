@@ -33,8 +33,8 @@ def dowload_new_release(amd, intel, version, update, generate):
         os.mkdir('/tmp/')
         os.chdir('/tmp/')
 
-    if os.path.exists('/tmp/allowlist_config/'):
-        os.chdir('/tmp/allowlist_config/')
+    if os.path.exists(cfg.mainVars['tmpDir']):
+        os.chdir(cfg.mainVars['tmpDir'])
     else:
         os.mkdir('allowlist_config/')
         os.chdir('allowlist_config/')
