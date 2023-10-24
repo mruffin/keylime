@@ -81,9 +81,9 @@ def dowload_new_release(amd, intel, version, update, generate):
     #security_path = 'http://archive.ubuntu.com/ubuntu/dists/' + version + '-security/main/' + binary + '/Packages.gz'
 
     #Mirror Files
-    main_path = 'http://100.64.0.12/apt/mirror/archive.ubuntu.com/ubuntu/dists/' + version + '/main/' + binary + '/Packages.gz'
-    regular_path = 'http://100.64.0.12/apt/mirror/archive.ubuntu.com/ubuntu/dists/' + version + '-updates/main/' + binary + '/Packages.gz'
-    security_path = 'http://100.64.0.12/apt/mirror/archive.ubuntu.com/ubuntu/dists/' + version + '-security/main/' + binary + '/Packages.gz'
+    main_path = 'http://130.126.137.0/ubuntu/mirror/archive.ubuntu.com/ubuntu/dists/' + version + '/main/' + binary + '/Packages.gz'
+    regular_path = 'http://130.126.137.0/ubuntu/mirror/archive.ubuntu.com/ubuntu/dists/' + version + '-updates/main/' + binary + '/Packages.gz'
+    security_path = 'http://130.126.137.0/ubuntu/mirror/archive.ubuntu.com/ubuntu/dists/' + version + '-security/main/' + binary + '/Packages.gz'
     
     # main_universe = 'http://100.64.0.12/apt/mirror/archive.ubuntu.com/ubuntu/dists/' + version + '/universe/' + binary + '/Packages.gz'
     # regular_universe = 'http://100.64.0.12/apt/mirror/archive.ubuntu.com/ubuntu/dists/' + version + '-updates/universe/' + binary + '/Packages.gz'
@@ -263,7 +263,7 @@ def create_allowlist_update(updateDict, filter_exec):
         # for each package in the list, pull down their updated debian file
         #path = 'http://archive.ubuntu.com/ubuntu/' + updateDict[i]['Filename'].strip()
         #i = i.split('__')[0]
-        path = 'http://100.64.0.12/apt/mirror/archive.ubuntu.com/ubuntu/' + updateDict[i]['Filename'].strip()
+        path = 'http://130.126.137.0/ubuntu/mirror/archive.ubuntu.com/ubuntu/' + updateDict[i]['Filename'].strip()
         #print(path)
         name = updateDict[i]['Filename'].split("/")[-1]
         #print(name)
@@ -483,7 +483,7 @@ def write_allowlist(hashDict):
     # if this file doesn't exisit we will create it and begin appending measurements to it.
     # if it does exisit already (have previously run this script) then simply open it and append to it
     print(">>>> Writing package to allowlist")
-    with open("/tmp/allowlist_config/myallowlist_Aug3.txt", "a+") as f:
+    with open("/tmp/allowlist_config/allowlist_update_oct23.txt", "a+") as f:
         for i in hashDict:
             f.write(hashDict[i] + "  " + i + "\n")
     f.close()
@@ -546,7 +546,7 @@ def main():
     parser = Parser()
     group1 = parser.add_mutually_exclusive_group(required=True)
     group1.add_argument("-x", "--amd64", help="Architecture Type amd64", action="store_true")
-    group1.add_argument("-i", "--i386", help="Architecture Tyoe i386", action="store_true")
+    group1.add_argument("-i", "--i386", help="Architecture Type i386", action="store_true")
 
     parser.add_argument("-v","--version", help="Current Ubuntu Version Name (ex. jammy)", action="store")
     parser.add_argument("-e","--exec", help="Filter Only Executable Files", action="store_true")

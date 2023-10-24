@@ -19,7 +19,6 @@ import argparse
 import sys
 import hashlib
 import requests
-import gzip
 import shutil
 import subprocess
 import time
@@ -27,20 +26,20 @@ import re
 import runtimeconf as cfg
 import download_release as dwn
 import clean_pkg_files as cln
-import datetime
+import create_compare_release as cc
 
 '''
 must have zstd installed. For Mac == brew install zstd
 '''
 
 # compare the previous release stored on your machine to the current release. Find the differneces and target those for the update
-def create_diff_release(currentFileDict, fileType):
+'''def create_diff_release(currentFileDict, fileType):
     print(">>>> Loading up Old Package Files")
     # load up old file and 
     if fileType == 'update':
-        filePath = '/tmp/allowlist_config/UpdatePackage_Old'
+        filePath = cfg.mainVars['tmpDir'] + 'UpdatePackage_Old'
     elif fileType == 'security':
-        filePath = '/tmp/allowlist_config/SecurityPackage_Old'
+        filePath = cfg.mainVars['tmpDir'] + 'SecurityPackage_Old'
 
     finalDict = {}
     finalList = []
@@ -72,10 +71,10 @@ def create_diff_release(currentFileDict, fileType):
     for i in finalList:
         finalDict[i] = currentFileDict[i]
 
-    return  finalDict
+    return  finalDict'''
 
 # compare the security pkgs file to the updates pkgs file to see if any have been repeated
-def compare_sec_and_update(updateDict, securityDict):
+'''def compare_sec_and_update(updateDict, securityDict):
 
     print(">>>> Comparing the Security to Update Package File")
     updateFileList = list(updateDict.keys())
@@ -87,10 +86,10 @@ def compare_sec_and_update(updateDict, securityDict):
     finalDict = {}
     #count = 0
 
-    '''we need to compare the name and versions of the packages 
+    """we need to compare the name and versions of the packages 
     if the filename is found in the 2nd list then go thru the dict and compare the two versions. If they are the same
     take the name out of (remove) both of the lists and put it in the final list,. Keep count of how many are dubplcates.
-    then once all are taken out of the lists combine the security and update lists with their unique files and then add the final list to them update final dict'''
+    then once all are taken out of the lists combine the security and update lists with their unique files and then add the final list to them update final dict"""
 
     # go through one list and compare the file names. If names and version matches, add to duplicate list and remove from other two lists.
     # we only want to see it once.
@@ -142,7 +141,7 @@ def compare_sec_and_update(updateDict, securityDict):
     #for i in finalDict.keys():
     #    print(i)
     #print(len(finalDict.keys()))
-    return finalDict
+    return finalDict'''
 
 class Allowlist:
     def __init__(self, dict, filter_exec):
@@ -166,16 +165,21 @@ class Allowlist:
             #i = i.split('__')[0]
             path = cfg.mirror['mirror_main_path'] + updateDict[i]['Filename'].strip()
             #print(path)
+            plainPkgName = updateDict[i]['Package'].strip()
             name = updateDict[i]['Filename'].split("/")[-1]
+            version = updateDict[i]['Version'].strip()
             #print(name)
             startDir = cfg.mainVars['tmpDir'] + "temp/"
             pkgname = name.replace(".deb", "")
             print()
             print(">>> Package Name: " + pkgname)
             hashDict = {}
+            recordList = []
+            recordDict = {}
 
             # extract the files we want to measure into a list
-            updatesList = self.create_paths_list(path, name)
+            updatesList = self.create_paths_list(path, name, plainPkgName, version)
+            
             # go into the dir of the extracted debian package
             os.chdir(pkgname)
             
@@ -258,6 +262,7 @@ class Allowlist:
                         os.chdir(startDir + pkgname)
 
                 policyPath = k.replace("./", "/")
+                recordList.append(policyPath)
                 #print(policyPath)
                 hashDict[policyPath] = hash
 
@@ -265,27 +270,37 @@ class Allowlist:
                 #### name and  hash and  change the path to second to /usr/bin*            ####
                 if policyPath.startswith('/bin/'):
                     policyPathDuplicate = policyPath.replace('/bin/', '/usr/bin/')
+                    recordList.append(policyPathDuplicate)
                     hashDict[policyPathDuplicate] = hash
             
                 if policyPath.startswith('/lib/'):
                     policyPathDuplicate = policyPath.replace('/lib/', '/usr/lib/')
+                    recordList.append(policyPathDuplicate)
                     hashDict[policyPathDuplicate] = hash
                 
                 if policyPath.startswith('/lib32/'):
                     policyPathDuplicate = policyPath.replace('/lib32/', '/usr/lib32/')
+                    recordList.append(policyPathDuplicate)
                     hashDict[policyPathDuplicate] = hash
 
                 if policyPath.startswith('/libx32/'):
                     policyPathDuplicate = policyPath.replace('/libx32/', '/usr/libx32/')
+                    recordList.append(policyPathDuplicate)
                     hashDict[policyPathDuplicate] = hash
 
                 if policyPath.startswith('/lib64/'):
                     policyPathDuplicate = policyPath.replace('/lib64/', '/usr/lib64/')
+                    recordList.append(policyPathDuplicate)
                     hashDict[policyPathDuplicate] = hash
 
                 if policyPath.startswith('/sbin/'):
                     policyPathDuplicate = policyPath.replace('/sbin/', '/usr/sbin/')
+                    recordList.append(policyPathDuplicate)
                     hashDict[policyPathDuplicate] = hash
+
+            # write the dictonary filled with files to a json file
+            recordDict[plainPkgName + '_' + version] = recordList
+            self.write_recordlist(recordDict)
 
             # write the dictonary filled with measurements to a file
             self.write_allowlist(hashDict)
@@ -294,14 +309,13 @@ class Allowlist:
         return 
     
     # create a list of file paths for each file in .deb package
-    def create_paths_list(self, path, name):
+    def create_paths_list(self, path, name, plainPkgName, version):
         # list of paths for each debian package
         r = requests.get(path)
         open(name , 'wb').write(r.content)
-        time.sleep(3) ### Is this long enough??? DoSed the system
+        time.sleep(2) ### Is this long enough??? DoSed the system
 
         result = subprocess.run(['dpkg-deb', '-X', name, name.replace('.deb', '')], stdout=subprocess.PIPE).stdout.decode('utf-8')
-        #print(result)
 
         pathsList = result.splitlines()
         mainList = []
@@ -324,6 +338,7 @@ class Allowlist:
         cleanList = [x for x in mainList if x not in s]
         #print(cleanList)
         #print(len(cleanList))
+    
         return cleanList
 
     # take the hash (measurement) of the individual files inside the package
@@ -352,6 +367,9 @@ class Allowlist:
         f.close()
         return
 
+    def write_recordlist (self, recordDict):
+
+        return
     # cleanup whatever directory needs it
     def cleanup(self, dir):
         # delete contents of /tmp/allow_config/temp/ folder to prepare memory space for the next one
@@ -402,7 +420,7 @@ def main():
     # either generate a new release update and append or update previous allowlist
     if args.generate:
         #compare update to security to see what files and their versions are the same 
-        pkgDict1 = compare_sec_and_update(updateDict, securityDict)
+        pkgDict1 = cc.compare_sec_and_update(updateDict, securityDict)
         
         print("\n >>> Measuring the Main Repository....\n")
         allow1 = Allowlist(mainDict, args.exec)
@@ -423,11 +441,11 @@ def main():
 
     elif args.update:
        #returns the difference between the two file types old vs new
-       update = create_diff_release(updateDict, fileType='update')
-       security = create_diff_release(securityDict, fileType='security')
+       update = cc.create_diff_release(updateDict, fileType='update')
+       security = cc.create_diff_release(securityDict, fileType='security')
     
        #compare update to security to see what files and their versions are the same 
-       pkgDict1 = compare_sec_and_update(update, security)
+       pkgDict1 = cc.compare_sec_and_update(update, security)
        allow1 = Allowlist(pkgDict1, filter)
        allow1.create_allowlist_update()
        os.chdir(cfg.mainVars["tmpDir"])
@@ -435,7 +453,6 @@ def main():
        '''print("\n>>> Measuring the Security and Update Repositories....\n\n")
        create_allowlist_update(pkgDict1, args.exec)
        os.chdir(cfg.mainVars["tmpDir"])'''
-
 
 class Parser(argparse.ArgumentParser):
     def error(self, message: str):
