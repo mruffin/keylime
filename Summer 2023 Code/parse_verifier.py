@@ -13,7 +13,7 @@ def parseLogErrors(log_file):
         file = []
         for line in f: 
             if """'], '""" in line:
-                #split at the colon and add the items to the list individually
+                #split at the coma and add the items to the list individually
                 split = line.split(",")
                 for i in split:
                     file.append(i)
@@ -21,13 +21,23 @@ def parseLogErrors(log_file):
                 file.append(line)
 
         clean_file = []
-        trash = []
+        #trash = []
 
         for line in file:
-            if line.startswith(""" '/""") and line.endswith("""']""") or line.endswith("""']""") or line.startswith(""" '/"""):
-                trash.append(line)
-            else:
+            #we just want the important stuff from the log, not all the file names and whatever
+            if line.startswith("2023"):
                 clean_file.append(line)
+            #if line.startswith(""" '/""") and line.endswith("""']""") or line.endswith("""']""") and line.startswith(""" '/"""):
+            #    #trash.append(line)
+            #    continue
+
+            #if """ not in {'meta': """ in line:
+            #    sep = """not in {'meta':"""
+            #    stripped = line.split(sep, 1)[0]
+            #    clean_file.append(stripped)
+            
+            #else:
+            #    clean_file.append(line)
 
     return clean_file
 
