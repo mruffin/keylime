@@ -27,6 +27,7 @@ def parseLogErrors(log_file):
             #we just want the important stuff from the log, not all the file names and whatever
             if line.startswith("2023"):
                 clean_file.append(line)
+                clean_file.append("\n")
             #if line.startswith(""" '/""") and line.endswith("""']""") or line.endswith("""']""") and line.startswith(""" '/"""):
             #    #trash.append(line)
             #    continue
