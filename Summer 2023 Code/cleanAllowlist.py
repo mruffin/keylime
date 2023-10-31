@@ -42,7 +42,6 @@ def main():
         parser.print_help()
         parser.exit()
 
-    # if you don't specify that you just want the errors it will give that all output
     args = parser.parse_args()
 
 
