@@ -1,0 +1,18 @@
+# 5 - Unclear why these OS files had to be excluded (if not excluded, results in "File not found in whitelist" error)
+
+## Directories
+/var/lib/dpkg/*
+/usr/lib/x86_64-linux-gnu/*
+/lib/x86_64-linux-gnu/*
+/tmp/*
+/var/*
+
+## Margie Added Files
+/usr/local/bin/rust_keylime_agent
+/home/margie/Desktop/Keylime/rust-keylime/target/debug/keylime_agent
+
+
+## Double check that this isn't actually supposed to be included
+/usr/bin/cargo
+/usr/lib/ubuntu-advantage/apt-esm-hook
+
