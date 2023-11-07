@@ -1,5 +1,5 @@
 # Byte-compiled / optimized / DLL files
-Runtime_Policy_Generation/__pycache__/
+**/__pycache__
 *.pyc
 
 # C extensions
