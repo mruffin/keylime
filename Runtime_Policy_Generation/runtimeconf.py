@@ -7,7 +7,9 @@ mainVars = {
     'securityPath' : '/home/mruffin2/Research/Keylime/keylime/Runtime_Policy_Generation/allowlist_config/SecurityPackage',
     'allowlistOrig': "/home/mruffin2/Research/Keylime/keylime/Runtime_Policy_Generation/allowlist_config/allowlist_orig_" + str(datetime.date.today()) + ".txt",
     'allowlistUpdate': "/home/mruffin2/Research/Keylime/keylime/Runtime_Policy_Generation/allowlist_config/allowlist_main_" + str(datetime.date.today()) + ".txt",
-    'recordName' : "/home/mruffin2/Research/Keylime/keylime/Runtime_Policy_Generation/allowlist_config/allowlistRecord.json"
+    'recordName' : "/home/mruffin2/Research/Keylime/keylime/Runtime_Policy_Generation/allowlist_config/allowlistRecord.json",
+    'recordNameTemp' : "/home/mruffin2/Research/Keylime/keylime/Runtime_Policy_Generation/allowlist_config/allowlistRecordTemp.json",
+    'recordNameZip' : "/home/mruffin2/Research/Keylime/keylime/Runtime_Policy_Generation/allowlist_config/allowlistRecord.zip"
 
 }
 
