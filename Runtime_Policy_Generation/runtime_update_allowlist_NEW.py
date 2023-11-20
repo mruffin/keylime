@@ -24,7 +24,7 @@ import subprocess
 import time
 import re
 import json
-import zlib
+import zipfile
 from datetime import date
 import runtimeconf as cfg
 import download_release as dwn
@@ -41,7 +41,7 @@ class Allowlist:
         self.filter = bool(filter_exec)
 
     # create a new file with file paths and Sha256Sum of the targeted files
-    def create_allowlist_update(self):
+    def create_allowlist_update(self, status):
         updateDict = self.dict
         filter_exec = self.filter
 
@@ -192,7 +192,7 @@ class Allowlist:
             recordDict[plainPkgName + '_' + version] = {"digests": hashDict}
             recordDict[plainPkgName + '_' + version]["Date"] = str(x)
             
-            self.write_recordlist(recordDict)
+            self.write_recordlist(recordDict, status)
 
             # write the dictonary filled with measurements to a file
             #self.write_allowlist(hashDict)
@@ -246,7 +246,7 @@ class Allowlist:
         return measurement
 
     # write allowlist to file
-    def write_allowlist(self, hashDict):
+    """ def write_allowlist(self, hashDict):
         # if this file doesn't exisit we will create it and begin appending measurements to it.
         # if it does exisit already (have previously run this script) then simply open it and append to it
         print(">>>> Writing package to allowlist")
@@ -258,13 +258,17 @@ class Allowlist:
             for i in hashDict:
                 f.write(hashDict[i] + "  " + i + "\n")
         f.close()
-        return
+        return """
 
     #write the records to the file
-    def write_recordlist (self, recordDict):
+    def write_recordlist (self, recordDict, status):
 
         print(">>>> Writing package to JSON File")
-        name = cfg.mainVars["recordName"]
+        if status == "g":
+            name = cfg.mainVars["recordName"]
+        elif status == "u":
+            name = cfg.mainVars["recordNameTemp"]
+
         with open(name, "a+") as f:
             json.dump(recordDict, f)
             f.write('\n')
@@ -287,12 +291,6 @@ class Allowlist:
         os.chdir(dir)
         return
 
-def updateRecord():
-
-    #files with the most recent same packagename but diff versions are compared, one with most recent date stays, delete the other
-
-    return
-
 def generateAllowlist(name):
 
     recordFile = cfg.mainVars["recordName"]
@@ -310,13 +308,76 @@ def generateAllowlist(name):
     file.close()
     return
 
-def cleanUpRecord(jsonFile):
+def updateRecord():
+    #files with the most recent same packagename but diff versions are compared, one with most recent date stays, delete the other
 
-    #compressed = zlib.compress(cPickle.dumps(obj))
+    recordFile = cfg.mainVars["recordName"]
+    recordFileTemp = cfg.mainVars["recordNameTemp"]
+
+    orgRecord = open(recordFile, "r+")
+
+    #compare the records 
+    with open(recordFileTemp, "r") as f:
+        #open the temp record file to iterate through
+        for i in f:
+            newData = json.loads() #load each record and grab it key pkgname_version
+            for x, y in newData.items():
+                newpkg_name = newData[x].split("_")[0] #we just want the pkgname
+
+                #do the same thing for the original record, since we need to go through every one of these
+                for j in orgRecord: 
+                    oldData = json.loads() #load each record and grab it key pkgname_version
+                    for k, m in oldData.items():
+                        oldpkg_name = newData[k].split("_")[0] #we just want the pkgname
+                        
+                        #check to see if the names are the same
+                        if newpkg_name == oldpkg_name:
+                            print(">>>> Found pakages with same name, comparing dates")
+                            #if names are the same, compare the dates
+                            if date.strptime(newpkg_name["Date"] , "%m/%d/%y") > date.strptime(oldpkg_name["Date"] , "%m/%d/%y"):
+                                print(">>>> Adding appropriate Package to Record")
+                                #keep the more recent date i.e., add to the old record and delete the json record from old record
+                                #write the new one to the old record 
+                                #put the old into a list to be taken out later
+                        #if you never find the same package name in the record file add the json record to old record
+                        else:
+                            print(">>>> This is a new Pacakge. Adding it to the Record")
+                        
+
+    ## after it is all said and done, delete the temp record
 
     return
 
+# alternate state of the record based on whether a zip file or .json file is present
+def changeRecordState():
 
+    #check to see if the zip of this file exsists
+    if os.path.isfile(cfg.mainVars["recordNameZip"]):
+        
+        print(">>>> Uncompressing the Record File")
+        #the file exisits uncompress it
+        with zipfile(cfg.mainVars["recordNameZip"], "r") as zobject:
+            zobject.extractall()
+        #delete the zip file
+        os.remove(cfg.mainVars["recordNameZip"])
+
+    # Zip file didn't exsist
+    else:
+        compression = zipfile.ZIP_DEFLATED
+        print(">>>> Compressing the record file")
+        #compress the record file 
+        zf = zipfile.ZipFile(cfg.mainVars["recordNameZip"], mode="w")
+        try:
+            zf.write(cfg.mainVars["recordName"], compress_type=compression)
+        except FileNotFoundError as e:
+            print(f' *** Exception occurred during zip process - {e}')
+        finally:
+            zf.close()
+
+        #delete the plain record file
+        os.remove(cfg.mainVars["recordName"])
+
+    return
 
 def main():
     ## Based on the options that they give us, archtiecture & ubutntu version (name) we can navigate to the right link ##
@@ -344,6 +405,7 @@ def main():
     args = parser.parse_args()
     #dwn.dowload_new_release(args.amd64, args.i386, args.version, args.update, args.generate)
 
+    ### Purely for testing purposes ###
     masterUniPath = '/home/mruffin2/Research/Keylime/keylime/Runtime_Policy_Generation/allowlist_config/TestPackageFile.txt'
     masterDict = cln.clean_package_file(masterUniPath)
     os.chdir(cfg.mainVars["tmpDir"])
@@ -357,9 +419,10 @@ def main():
     # either generate a new release update and append or update previous allowlist
     if args.generate:
 
+        status = "g"
         ### Purely for testing purposes ###
         master = Allowlist(masterDict, args.exec)
-        master.create_allowlist_update()
+        master.create_allowlist_update(status)
         os.chdir(cfg.mainVars["tmpDir"])
 
 
@@ -368,47 +431,56 @@ def main():
         
         #print("\n >>> Measuring the Main Repository....\n")
         #allow1 = Allowlist(mainDict, args.exec)
-        #allow1.create_allowlist_update()
+        #allow1.create_allowlist_update(status)
         #os.chdir(cfg.mainVars["tmpDir"])
 
 
         #allow2 = Allowlist(pkgDict1, args.exec)
-        #allow2.create_allowlist_update()
+        #allow2.create_allowlist_update(status)
         #os.chdir(cfg.mainVars["tmpDir"])
+
+        #generate my allowlist and then compress my record until it's time to use it again
         allowlistVer = "allowlistOrig"    
         generateAllowlist(allowlistVer)
-        #generate my allowlist and then compress my record until it's time to use it again
+        changeRecordState()
 
-
-        #cleanUpRecord()
-
-
-        '''print("\n >>> Measuring the Security and Update Repositories....\n\n")
-        create_allowlist_update(pkgDict1, args.exec)
-        os.chdir(cfg.mainVars["tmpDir"])'''
 
     elif args.update:
-       #returns the difference between the two file types old vs new
-       update = cc.create_diff_release(updateDict, fileType='update')
-       security = cc.create_diff_release(securityDict, fileType='security')
-    
-       #compare update to security to see what files and their versions are the same 
-       pkgDict1 = cc.compare_sec_and_update(update, security)
-       allow1 = Allowlist(pkgDict1, filter)
-       allow1.create_allowlist_update()
-       os.chdir(cfg.mainVars["tmpDir"])
        
-       #uncompress the record first and then update stuff
-       #give me the first version of the allowlist based off everything in record
-       #generateAllowlist(allowlistOrig)
-       #call the update record function to get rid of old stuff
-       #updateRecord()
-       #generate the allowlist again from the record ### pass in the name of the allowlist
-       #generateAllowlist(allowlistUpdate)
+       #uncompress the record first and then update it ... adding stuff to the record
+       changeRecordState()
+       status = "u"
+       ### Purely for testing purposes ###
+       master = Allowlist(masterDict, args.exec)
+       master.create_allowlist_update(status)
+       os.chdir(cfg.mainVars["tmpDir"])
 
-       '''print("\n>>> Measuring the Security and Update Repositories....\n\n")
-       create_allowlist_update(pkgDict1, args.exec)
-       os.chdir(cfg.mainVars["tmpDir"])'''
+
+       #returns the difference between the two file types old vs new
+       #update = cc.create_diff_release(updateDict, fileType='update')
+       #security = cc.create_diff_release(securityDict, fileType='security')
+       
+       #compare update to security to see what files and their versions are the same 
+       #pkgDict1 = cc.compare_sec_and_update(update, security)
+
+       #allow1 = Allowlist(pkgDict1, args.update)
+       #allow1.create_allowlist_update(status)
+       #os.chdir(cfg.mainVars["tmpDir"])
+       
+       #give me the first version of the allowlist based off everything in record --- We uncompressed the zip file 
+       allowlistVer = "allowlistOrig"    
+       generateAllowlist(allowlistVer)
+
+       #call the update record function to get rid of old stuff
+       updateRecord()
+
+       #generate the allowlist again from the record ### pass in the name of the allowlist
+       allowlistVer = "allowlistUpdate" 
+       generateAllowlist(allowlistVer)
+
+       #record state
+       changeRecordState()
+
 
 class Parser(argparse.ArgumentParser):
     def error(self, message: str):
@@ -418,8 +490,3 @@ class Parser(argparse.ArgumentParser):
 
 if __name__ == "__main__":
     main()
-
-''' we can create a pkl of the information serialied and dignital sign it, save the hash
-only unpkl if the sig/hash matches
-
-'''
