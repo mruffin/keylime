@@ -25,7 +25,7 @@ import time
 import re
 import json
 import zipfile
-from datetime import date
+from datetime import date, datetime
 import runtimeconf as cfg
 import download_release as dwn
 import clean_pkg_files as cln
@@ -310,42 +310,84 @@ def generateAllowlist(name):
 
 def updateRecord():
     #files with the most recent same packagename but diff versions are compared, one with most recent date stays, delete the other
-
     recordFile = cfg.mainVars["recordName"]
     recordFileTemp = cfg.mainVars["recordNameTemp"]
+    addedpkg = [] #packages we have added to the Original Record
+    oldPkgs = []
 
-    orgRecord = open(recordFile, "r+")
+    #Step #1: Compare the records and add to the Original Record
+    with open(recordFileTemp, "r") as tempRecord:
+        for i in tempRecord:
+            newData = json.loads(i) #load each record and grab its key -- pkgname_version
+            ans = list(newData.keys())[0]
+            newpkg_name = ans.split("_")[0] #we just want the pkgname
+            newpkg_version = ans.split("_")[1]
 
-    #compare the records 
-    with open(recordFileTemp, "r") as f:
-        #open the temp record file to iterate through
-        for i in f:
-            newData = json.loads() #load each record and grab it key pkgname_version
-            for x, y in newData.items():
-                newpkg_name = newData[x].split("_")[0] #we just want the pkgname
-
-                #do the same thing for the original record, since we need to go through every one of these
+            #do the same thing for the original record, since we need to go through every one of these
+            with open(recordFile, "r+") as orgRecord:
+                seenpkg = [] #all the original packages we've seen thus far
                 for j in orgRecord: 
-                    oldData = json.loads() #load each record and grab it key pkgname_version
-                    for k, m in oldData.items():
-                        oldpkg_name = newData[k].split("_")[0] #we just want the pkgname
-                        
-                        #check to see if the names are the same
-                        if newpkg_name == oldpkg_name:
-                            print(">>>> Found pakages with same name, comparing dates")
-                            #if names are the same, compare the dates
-                            if date.strptime(newpkg_name["Date"] , "%m/%d/%y") > date.strptime(oldpkg_name["Date"] , "%m/%d/%y"):
-                                print(">>>> Adding appropriate Package to Record")
-                                #keep the more recent date i.e., add to the old record and delete the json record from old record
-                                #write the new one to the old record 
-                                #put the old into a list to be taken out later
-                        #if you never find the same package name in the record file add the json record to old record
-                        else:
-                            print(">>>> This is a new Pacakge. Adding it to the Record")
-                        
+                    oldData = json.loads(j) #load each record and grab its key pkgname_version
+                    res = list(oldData.keys())[0]
+                    oldpkg_name = res.split("_")[0] #we just want the pkgname
+                    oldpkg_version = res.split("_")[1]
+                    #make a list of everything you've seen before and if at the end of loop package isn't in list add it to record
+                    seenpkg.append(res)
 
-    ## after it is all said and done, delete the temp record
+                    #The package name and version is same, it has not been updated
+                    if newpkg_name == oldpkg_name and newpkg_version == oldpkg_version:
+                        print(">>>> This package has the same name and version as another, move on")
+                    
+                    #The package name is the same but version is different, it has been updated
+                    elif newpkg_name == oldpkg_name and newpkg_version != oldpkg_version:
+                        print(">>>> Found pakages with same name and different versions, comparing dates")
 
+                        #if names are the same, compare the dates. This will pull the most recent package
+                        if datetime.strptime(newData[ans]["Date"] , "%m/%d/%y") > datetime.strptime(oldData[res]["Date"] , "%m/%d/%y"):
+                            print(">>>> Adding appropriate Package to Record")
+                            json.dump(newData, orgRecord)
+                            orgRecord.write('\n')
+                            #put the new into a list to be tracked
+                            addedpkg.append(ans)
+                            #put the old into a list to be taken out later
+                            oldPkgs.append(res)
+            
+                #if you never find the same package name in the record file add the json record to old record
+                if ans not in seenpkg and ans not in addedpkg:
+                    print(">>>> This is a new Pacakge. Adding it to the Record")
+                    json.dump(newData, orgRecord)
+                    orgRecord.write('\n')
+            orgRecord.close()
+    tempRecord.close()
+    
+    #Step 2 call the function to create the policies with all the new additions
+    allowlistVer = "allowlistOrig"    
+    generateAllowlist(allowlistVer)
+
+    #Step 3 remove the old from the record list
+    #Clear out contents of temp file because we want to replace them for now. 
+    open(recordFileTemp, 'w').close()
+
+    #Temporarily write the record to temp with removals and then rename it as the main AllowlistRecord 
+    with open(recordFile, "r") as orgRecord:
+        with open(recordFileTemp, "w") as tempRecord:
+            for line in orgRecord:
+                lineData = json.loads(line)
+                name = list(lineData.keys())[0]
+
+                #write all packages that are not in oldpkg List
+                if name not in oldPkgs:
+                    json.dump(lineData, tempRecord)
+                    tempRecord.write('\n')
+
+    os.replace(recordFileTemp, recordFile)
+
+    #Step 4 call the function to create the polices with removals    
+    allowlistVer = "allowlistUpdate" 
+    generateAllowlist(allowlistVer)
+
+    #After it is all said and done, delete the temp record
+    os.remove(recordFileTemp)
     return
 
 # alternate state of the record based on whether a zip file or .json file is present
@@ -406,7 +448,7 @@ def main():
     #dwn.dowload_new_release(args.amd64, args.i386, args.version, args.update, args.generate)
 
     ### Purely for testing purposes ###
-    masterUniPath = '/home/mruffin2/Research/Keylime/keylime/Runtime_Policy_Generation/allowlist_config/TestPackageFile.txt'
+    masterUniPath = '/home/mruffin2/Research/Keylime/keylime/Runtime_Policy_Generation/allowlist_config/TestPackageFileUpdate.txt'
     masterDict = cln.clean_package_file(masterUniPath)
     os.chdir(cfg.mainVars["tmpDir"])
 
@@ -442,13 +484,13 @@ def main():
         #generate my allowlist and then compress my record until it's time to use it again
         allowlistVer = "allowlistOrig"    
         generateAllowlist(allowlistVer)
-        changeRecordState()
+        #changeRecordState()
 
 
     elif args.update:
        
        #uncompress the record first and then update it ... adding stuff to the record
-       changeRecordState()
+       #changeRecordState()
        status = "u"
        ### Purely for testing purposes ###
        master = Allowlist(masterDict, args.exec)
@@ -468,18 +510,18 @@ def main():
        #os.chdir(cfg.mainVars["tmpDir"])
        
        #give me the first version of the allowlist based off everything in record --- We uncompressed the zip file 
-       allowlistVer = "allowlistOrig"    
-       generateAllowlist(allowlistVer)
+       #allowlistVer = "allowlistOrig"    
+       #generateAllowlist(allowlistVer)
 
        #call the update record function to get rid of old stuff
        updateRecord()
 
        #generate the allowlist again from the record ### pass in the name of the allowlist
-       allowlistVer = "allowlistUpdate" 
-       generateAllowlist(allowlistVer)
+       #allowlistVer = "allowlistUpdate" 
+       #generateAllowlist(allowlistVer)
 
        #record state
-       changeRecordState()
+       #changeRecordState()
 
 
 class Parser(argparse.ArgumentParser):
