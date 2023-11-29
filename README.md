@@ -6,3 +6,11 @@ If you want to **continuously** make sure that things aren’t being altered in 
 
 ## Tools Breakdown
 In this repository, you will find various tools to help you generate runtime policies for runtime integrity monitoring with Keylime, parse through errors in the Keylime Verfier, and more. 
+
+#### Runtime Policy Generation
+##### Generating a New Policy
+
+##### Updating an Old Policy
+
+_________________
+#### Keylime Verifier Log Parser
