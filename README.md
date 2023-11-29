@@ -9,8 +9,11 @@ In this repository, you will find various tools to help you generate runtime pol
 
 #### Runtime Policy Generation
 ##### Generating a New Policy
+To create a new runtime policy, run the following command. Run command -h to see the help menu. <br>
+<code>python3 runtime_update_allowlist.py -x -v jammy -g -e</code>
 
 ##### Updating an Old Policy
-
+To update an existing runtime policy that is on your local machine, run the following command. Run command -h to see the help menu. <br>
+<code>python3 runtime_update_allowlist.py -x -v jammy -u -e</code>
 _________________
 #### Keylime Verifier Log Parser
