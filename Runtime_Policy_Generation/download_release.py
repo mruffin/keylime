@@ -27,11 +27,11 @@ def download_new_release_files(path, filename):
 def dowload_new_release(amd, intel, version, update, generate):
 
     #navigate to the /tmp/ dir and create a new dir for allowlist files
-    if os.path.exists('/tmp/'):
+    '''if os.path.exists('/tmp/'):
         os.chdir('/tmp/')
     else:
         os.mkdir('/tmp/')
-        os.chdir('/tmp/')
+        os.chdir('/tmp/')'''
 
     if os.path.exists(cfg.mainVars['tmpDir']):
         os.chdir(cfg.mainVars['tmpDir'])
@@ -57,13 +57,13 @@ def dowload_new_release(amd, intel, version, update, generate):
         if update == True:
             print(">>>> Moving old files over")
             # check to see if the packages already exist, if so rename old ones to Name_Old.gz or Name_Old and then write down the new ones
-            if os.path.isfile('/tmp/allowlist_config/SecurityPackage.gz'):
-                os.rename('/tmp/allowlist_config/SecurityPackage.gz', '/tmp/allowlist_config/SecurityPackage_Old.gz')
-                os.rename('/tmp/allowlist_config/SecurityPackage', '/tmp/allowlist_config/SecurityPackage_Old')
+            if os.path.isfile(cfg.mainVars['securityPath']):
+                os.rename(cfg.mainVars['securityPath']+'.gz', cfg.mainVars['securityPathOld']+'.gz')
+                os.rename(cfg.mainVars['securityPath'], cfg.mainVars['securityPathOld'])
 
-            if os.path.isfile('/tmp/allowlist_config/UpdatePackage.gz'):
-                os.rename('/tmp/allowlist_config/UpdatePackage.gz', '/tmp/allowlist_config/UpdatePackage_Old.gz')
-                os.rename('/tmp/allowlist_config/UpdatePackage', '/tmp/allowlist_config/UpdatePackage_Old')
+            if os.path.isfile(cfg.mainVars['updatePath']):
+                os.rename(cfg.mainVars['updatePath']+'.gz', cfg.mainVars['updatePathOld']+'.gz')
+                os.rename(cfg.mainVars['updatePath'], cfg.mainVars['updatePathOld'])
             
             print(">>>> Downloading and files")
             download_new_release_files(regular_path, rName)

@@ -69,8 +69,8 @@ class Allowlist:
             print(">>> Package Name: " + pkgname)
             hashDict = {}
             recordDict = {}
-            recordDict[plainPkgName + '_' + version] = {}
-            recordDict[plainPkgName + '_' + version]["Date"] = {}
+            recordDict[plainPkgName + '___' + version] = {}
+            recordDict[plainPkgName + '___' + version]["Date"] = {}
 
             # extract the files we want to measure into a list
             updatesList = self.create_paths_list(path, name)
@@ -189,8 +189,8 @@ class Allowlist:
             # write the dictonary filled with files and their hashes to a json file
             x = date.today()
             x = x.strftime("%m/%d/%y")
-            recordDict[plainPkgName + '_' + version] = {"digests": hashDict}
-            recordDict[plainPkgName + '_' + version]["Date"] = str(x)
+            recordDict[plainPkgName + '___' + version] = {"digests": hashDict}
+            recordDict[plainPkgName + '___' + version]["Date"] = str(x)
             
             self.write_recordlist(recordDict, status)
 
@@ -295,7 +295,7 @@ def generateAllowlist(name):
 
     recordFile = cfg.mainVars["recordName"]
     allowlist = cfg.mainVars[name]
-    file = open(allowlist, "a+")
+    file = open(allowlist, "w")
     with open(recordFile) as f:
         for i in f:
             data = json.loads(i.strip())
@@ -320,17 +320,18 @@ def updateRecord():
         for i in tempRecord:
             newData = json.loads(i) #load each record and grab its key -- pkgname_version
             ans = list(newData.keys())[0]
-            newpkg_name = ans.split("_")[0] #we just want the pkgname
-            newpkg_version = ans.split("_")[1]
+            newpkg_name = ans.split("___")[0] #we just want the pkgname
+            newpkg_version = ans.split("___")[1]
 
             #do the same thing for the original record, since we need to go through every one of these
-            with open(recordFile, "r+") as orgRecord:
+            with open(recordFile, "a+", encoding='utf-8') as orgRecord:
                 seenpkg = [] #all the original packages we've seen thus far
                 for j in orgRecord: 
+                    print("This is the json record >>>>>> " + j)
                     oldData = json.loads(j) #load each record and grab its key pkgname_version
                     res = list(oldData.keys())[0]
-                    oldpkg_name = res.split("_")[0] #we just want the pkgname
-                    oldpkg_version = res.split("_")[1]
+                    oldpkg_name = res.split("___")[0] #we just want the pkgname
+                    oldpkg_version = res.split("___")[1]
                     #make a list of everything you've seen before and if at the end of loop package isn't in list add it to record
                     seenpkg.append(res)
 
@@ -345,6 +346,7 @@ def updateRecord():
                         #if names are the same, compare the dates. This will pull the most recent package
                         if datetime.strptime(newData[ans]["Date"] , "%m/%d/%y") > datetime.strptime(oldData[res]["Date"] , "%m/%d/%y"):
                             print(">>>> Adding appropriate Package to Record")
+
                             json.dump(newData, orgRecord)
                             orgRecord.write('\n')
                             #put the new into a list to be tracked
@@ -361,6 +363,7 @@ def updateRecord():
     tempRecord.close()
     
     #Step 2 call the function to create the policies with all the new additions
+    print(">>>> Making the Allowlist with the New Additions")
     allowlistVer = "allowlistOrig"    
     generateAllowlist(allowlistVer)
 
@@ -369,6 +372,7 @@ def updateRecord():
     open(recordFileTemp, 'w').close()
 
     #Temporarily write the record to temp with removals and then rename it as the main AllowlistRecord 
+    print(">>>> Writing lines to Temp")
     with open(recordFile, "r") as orgRecord:
         with open(recordFileTemp, "w") as tempRecord:
             for line in orgRecord:
@@ -380,14 +384,18 @@ def updateRecord():
                     json.dump(lineData, tempRecord)
                     tempRecord.write('\n')
 
-    os.replace(recordFileTemp, recordFile)
+    #os.rename(recordFileTemp, recordFile)
+    print(">>>> Moving files from temp to main")
+    shutil.move(recordFileTemp, recordFile )
 
-    #Step 4 call the function to create the polices with removals    
+       
+    #Step 4 call the function to create the polices with removals
+    print(">>>> Making the Allowlist with the old stuff removed")    
     allowlistVer = "allowlistUpdate" 
     generateAllowlist(allowlistVer)
 
     #After it is all said and done, delete the temp record
-    os.remove(recordFileTemp)
+    #os.remove(recordFileTemp)
     return
 
 # alternate state of the record based on whether a zip file or .json file is present
@@ -445,41 +453,41 @@ def main():
         parser.exit()
 
     args = parser.parse_args()
-    #dwn.dowload_new_release(args.amd64, args.i386, args.version, args.update, args.generate)
+    dwn.dowload_new_release(args.amd64, args.i386, args.version, args.update, args.generate)
 
     ### Purely for testing purposes ###
-    masterUniPath = '/home/mruffin2/Research/Keylime/keylime/Runtime_Policy_Generation/allowlist_config/TestPackageFileUpdate.txt'
-    masterDict = cln.clean_package_file(masterUniPath)
-    os.chdir(cfg.mainVars["tmpDir"])
+    #masterUniPath = '/home/mruffin2/Research/Keylime/keylime/Runtime_Policy_Generation/allowlist_config/TestPackageFileUpdate.txt'
+    #masterDict = cln.clean_package_file(masterUniPath)
+    #os.chdir(cfg.mainVars["tmpDir"])
 
     
     # clean the package files (i.e. turn them into easily readable dictionaries) -- These dictionaries will serve as the basis for my Class Objects
-    #mainDict = cln.clean_package_file(cfg.mainVars["mainPath"])
-    #updateDict = cln.clean_package_file(cfg.mainVars["updatePath"])
-    #securityDict = cln.clean_package_file(cfg.mainVars["securityPath"])
+    mainDict = cln.clean_package_file(cfg.mainVars["mainPath"])
+    updateDict = cln.clean_package_file(cfg.mainVars["updatePath"])
+    securityDict = cln.clean_package_file(cfg.mainVars["securityPath"])
     
     # either generate a new release update and append or update previous allowlist
     if args.generate:
 
         status = "g"
         ### Purely for testing purposes ###
-        master = Allowlist(masterDict, args.exec)
+        '''master = Allowlist(masterDict, args.exec)
         master.create_allowlist_update(status)
-        os.chdir(cfg.mainVars["tmpDir"])
+        os.chdir(cfg.mainVars["tmpDir"])'''
 
 
         #compare update to security to see what files and their versions are the same 
-        #pkgDict1 = cc.compare_sec_and_update(updateDict, securityDict)
+        pkgDict1 = cc.compare_sec_and_update(updateDict, securityDict)
         
-        #print("\n >>> Measuring the Main Repository....\n")
-        #allow1 = Allowlist(mainDict, args.exec)
-        #allow1.create_allowlist_update(status)
-        #os.chdir(cfg.mainVars["tmpDir"])
+        print("\n >>> Measuring the Main Repository....\n")
+        allow1 = Allowlist(mainDict, args.exec)
+        allow1.create_allowlist_update(status)
+        os.chdir(cfg.mainVars["tmpDir"])
 
 
-        #allow2 = Allowlist(pkgDict1, args.exec)
-        #allow2.create_allowlist_update(status)
-        #os.chdir(cfg.mainVars["tmpDir"])
+        allow2 = Allowlist(pkgDict1, args.exec)
+        allow2.create_allowlist_update(status)
+        os.chdir(cfg.mainVars["tmpDir"])
 
         #generate my allowlist and then compress my record until it's time to use it again
         allowlistVer = "allowlistOrig"    
@@ -491,34 +499,35 @@ def main():
        
        #uncompress the record first and then update it ... adding stuff to the record
        #changeRecordState()
+
        status = "u"
        ### Purely for testing purposes ###
-       master = Allowlist(masterDict, args.exec)
+       '''master = Allowlist(masterDict, args.exec)
        master.create_allowlist_update(status)
-       os.chdir(cfg.mainVars["tmpDir"])
+       os.chdir(cfg.mainVars["tmpDir"])'''
 
 
        #returns the difference between the two file types old vs new
-       #update = cc.create_diff_release(updateDict, fileType='update')
-       #security = cc.create_diff_release(securityDict, fileType='security')
+       update = cc.create_diff_release(updateDict, fileType='update')
+       security = cc.create_diff_release(securityDict, fileType='security')
        
        #compare update to security to see what files and their versions are the same 
-       #pkgDict1 = cc.compare_sec_and_update(update, security)
+       pkgDict1 = cc.compare_sec_and_update(update, security)
 
-       #allow1 = Allowlist(pkgDict1, args.update)
-       #allow1.create_allowlist_update(status)
-       #os.chdir(cfg.mainVars["tmpDir"])
+       allow1 = Allowlist(pkgDict1, args.update)
+       allow1.create_allowlist_update(status)
+       os.chdir(cfg.mainVars["tmpDir"])
        
        #give me the first version of the allowlist based off everything in record --- We uncompressed the zip file 
-       #allowlistVer = "allowlistOrig"    
-       #generateAllowlist(allowlistVer)
+       '''allowlistVer = "allowlistOrig"    
+       generateAllowlist(allowlistVer)'''
 
        #call the update record function to get rid of old stuff
        updateRecord()
 
        #generate the allowlist again from the record ### pass in the name of the allowlist
-       #allowlistVer = "allowlistUpdate" 
-       #generateAllowlist(allowlistVer)
+       '''allowlistVer = "allowlistUpdate" 
+       generateAllowlist(allowlistVer)'''
 
        #record state
        #changeRecordState()
