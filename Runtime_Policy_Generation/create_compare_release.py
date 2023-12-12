@@ -84,6 +84,12 @@ def compare_sec_and_update(updateDict, securityDict):
     print('>>>> There are ' + str(len(uniqueSecurityFiles)) + ' unique Security Packages')
     print('>>>> There are ' + str(len(potentialDuplicateFiles)) + ' Packages with the same name')
     print('>>>> There are ' + str(len(realDuplicateFiles)) + ' real duplicate files between Security and Update Releases')
+
+
+    #put a clause here that if all of these values are 0, no additions and no changes, we do not need to preform an update
+    #sys.exit the program
+
+
     print('>>>> Creating final list')
     print()
 
