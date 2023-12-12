@@ -1,0 +1,182 @@
+Package: accountsservice
+Architecture: amd64
+Version: 22.07.5-2ubuntu1
+Priority: optional
+Section: gnome
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian freedesktop.org maintainers <pkg-freedesktop-maintainers@lists.alioth.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 500
+Depends: dbus (>= 1.9.18), libaccountsservice0 (= 22.07.5-2ubuntu1), libc6 (>= 2.34), libglib2.0-0 (>= 2.63.5), libpolkit-gobject-1-0 (>= 0.99)
+Recommends: default-logind | logind
+Suggests: gnome-control-center
+Filename: pool/main/a/accountsservice/accountsservice_22.07.5-2ubuntu1_amd64.deb
+Size: 69644
+MD5sum: 7b8d61673a0a9cd753e09eb70b371e44
+SHA1: 07d578c08aa7cfad79573112b080f28aa0ed24d6
+SHA256: d5c81dfde47811982c5f3c81c98cf4074d367f7a8f20c8e0aa55a5630ef6f920
+SHA512: 5a8ebaa001acf17d8114eca1335ca37565b6366a72a90deb943ade14214a1bd7a7a077d09bde86e08519e8bec61ed2cfde866bd5af746fb1a8169b3a5bedbd41
+Homepage: https://www.freedesktop.org/wiki/Software/AccountsService/
+Description: query and manipulate user account information
+Task: ubuntu-desktop-minimal, ubuntu-desktop, ubuntu-desktop-raspi, kubuntu-desktop, xubuntu-core, xubuntu-desktop, lubuntu-desktop, ubuntustudio-desktop-core, ubuntustudio-desktop, ubuntukylin-desktop, ubuntu-mate-core, ubuntu-mate-desktop, ubuntu-budgie-desktop, ubuntu-budgie-desktop-raspi
+Description-md5: 8aeed0a03c7cd494f0c4b8d977483d7e
+
+Package: acct
+Architecture: amd64
+Version: 6.6.4-4build2
+Priority: optional
+Section: admin
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian Security Tools <team+pkg-security@tracker.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 305
+Pre-Depends: init-system-helpers (>= 1.54~)
+Depends: libc6 (>= 2.34), lsb-base
+Filename: pool/main/a/acct/acct_6.6.4-4build2_amd64.deb
+Size: 88398
+MD5sum: 48b7db41d1a9f6406468b5abe98917db
+SHA1: c531254f60cb2d434b7ada15fdc437ec9ea4353a
+SHA256: 9e26a6d820df4f0f9926ca7c972bf14ba0bc0471d1a7aa82b8c018ad1a553983
+SHA512: 34152420566011495c32666b251d634ca29578aea84520ed1b661659624f2ffcf926b271f3be2c85344fdf7efa3cc4d2a4786409ec75bc50fc2001de70fa1831
+Homepage: https://www.gnu.org/software/acct/
+Description: GNU Accounting utilities for process and login accounting
+Description-md5: 2411ebcaa9bca02b21c19f927d3e1bda
+
+Package: acl
+Architecture: amd64
+Version: 2.3.1-1
+Multi-Arch: foreign
+Priority: optional
+Section: utils
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Guillem Jover <guillem@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 200
+Depends: libacl1 (= 2.3.1-1), libc6 (>= 2.34)
+Filename: pool/main/a/acl/acl_2.3.1-1_amd64.deb
+Size: 38456
+MD5sum: 49daaaf08ef6edca4d02e7073172b18a
+SHA1: 79fed6405dde114f656ffc4edd0b44ab1d836fa9
+SHA256: 42d0071e8c1898fb2910ce7b8f7e8fbe353fdada4416148530fd22bddab7e0b1
+SHA512: 80864abedbc0dcd071ef2adf7473dcc5073f7d1b1449f2bd998e820742af840ed86c5c1ff44835a0d145fa7e5a2570e5763dcda8675dc22e4bd0c7b58866027e
+Homepage: https://savannah.nongnu.org/projects/acl/
+Description: access control list - utilities
+Task: print-server, ubuntu-desktop-minimal, ubuntu-desktop, ubuntu-desktop-raspi, kubuntu-desktop, xubuntu-core, xubuntu-desktop, lubuntu-desktop, ubuntustudio-desktop-core, ubuntustudio-desktop, ubuntukylin-desktop, ubuntu-mate-core, ubuntu-mate-desktop, ubuntu-budgie-desktop, ubuntu-budgie-desktop-raspi
+Description-md5: b83fc53f6059dbeb88f11752e70968e7
+
+Package: acpi-support
+Architecture: amd64
+Version: 0.144
+Priority: optional
+Section: admin
+Origin: Ubuntu
+Maintainer: Ubuntu Core developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Bart Samwel <bart@samwel.tk>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 60
+Depends: acpid (>= 1.0.4-1ubuntu4)
+Recommends: toshset, wireless-tools
+Conflicts: uswsusp (<= 0.2)
+Filename: pool/main/a/acpi-support/acpi-support_0.144_amd64.deb
+Size: 9954
+MD5sum: 1e17c89db1ae18211d1ce69ea1586d17
+SHA1: 17a946942165a7084b0fc33b6d4709791022ade3
+SHA256: cf4c34ed306f45c272e3e72eb3ea720a4bedd6c9fec35530fb48660acec08d6d
+SHA512: 3a62906544ea2cd55df2ecae8bd5ed12d58e185ef22be6ec1681c567d8263d4c66280cbbcf415c85af4734807a5a3d8f3d48e9200d282e170ad8e6ac07e7ed2e
+Description: scripts for handling many ACPI events
+Task: ubuntu-desktop-minimal, ubuntu-desktop, ubuntu-desktop-raspi, kubuntu-desktop, xubuntu-core, xubuntu-desktop, lubuntu-desktop, ubuntustudio-desktop-core, ubuntustudio-desktop, ubuntukylin-desktop, ubuntu-mate-core, ubuntu-mate-desktop, ubuntu-budgie-desktop, ubuntu-budgie-desktop-raspi
+Description-md5: 3da3f1fdfeedd4b9182ff4fd508042a7
+
+Package: acpid
+Architecture: amd64
+Version: 1:2.0.33-1ubuntu1
+Priority: optional
+Section: admin
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Josue Ortega <josue@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 150
+Pre-Depends: init-system-helpers (>= 1.54~)
+Depends: libc6 (>= 2.34), lsb-base (>= 3.2-14), kmod
+Filename: pool/main/a/acpid/acpid_2.0.33-1ubuntu1_amd64.deb
+Size: 35846
+MD5sum: b92570368d5a6deff57b254cce83fd1f
+SHA1: f21bcb7c5e5df2fefa95d1365af8545e0dae1b0c
+SHA256: a36f1d65a89d4c2a75500ff1c0134d9ec629226942afad705a3e4c905875196f
+SHA512: 725bfce0c3dcaa5d244310a20b2b01d8e77c193b1518eb2120d19fad7502f6beaa860531cdf90dc7908f70efc8d534c88fa521d0ce3a71935fd93bfd40bf566a
+Homepage: http://sourceforge.net/projects/acpid2/
+Description: Advanced Configuration and Power Interface event daemon
+Task: ubuntu-desktop-minimal, ubuntu-desktop, ubuntu-desktop-raspi, kubuntu-desktop, xubuntu-core, xubuntu-desktop, lubuntu-desktop, ubuntustudio-desktop-core, ubuntustudio-desktop, ubuntukylin-desktop, ubuntu-mate-core, ubuntu-mate-desktop, ubuntu-budgie-desktop, ubuntu-budgie-desktop-raspi
+Description-md5: 6a7c4e4695f570d8fbcaec667cdcfcfe
+
+Package: adcli
+Architecture: amd64
+Version: 0.9.1-1ubuntu2
+Priority: optional
+Section: admin
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Laurent Bigonville <bigon@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 294
+Depends: libsasl2-modules-gssapi-mit, libc6 (>= 2.34), libgssapi-krb5-2 (>= 1.6.dfsg.2), libk5crypto3 (>= 1.7+dfsg), libkrb5-3 (>= 1.12~alpha1+dfsg), libldap-2.5-0 (>= 2.5.4)
+Filename: pool/main/a/adcli/adcli_0.9.1-1ubuntu2_amd64.deb
+Size: 98112
+MD5sum: 3992241412129dd97f940b327e74ee6e
+SHA1: 6e3786e905d8dbbd76e81023bde01154075f42d0
+SHA256: 9276e551fdb22143b0acf5192fd535488102a009f42213ae7f7bf1dba7ff9de4
+SHA512: 80799bf951ebe477043398b0b91955633784571231a5e91ad01cf6b154443edb5380dfdad0fe0d7c266bc16a801e9f91aa1cccf12dce92d7221a7a185e5fadda
+Homepage: https://www.freedesktop.org/software/realmd/
+Description: Tool for performing actions on an Active Directory domain
+Task: ubuntu-live, ubuntu-mate-core, ubuntu-mate-desktop
+Description-md5: 3f005076e7a98a598f65545cbab3b448
+
+Package: adduser
+Architecture: all
+Version: 3.118ubuntu5
+Multi-Arch: foreign
+Priority: important
+Section: admin
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian Adduser Developers <adduser@packages.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 608
+Depends: passwd, debconf (>= 0.5) | debconf-2.0
+Suggests: liblocale-gettext-perl, perl, ecryptfs-utils (>= 67-1)
+Filename: pool/main/a/adduser/adduser_3.118ubuntu5_all.deb
+Size: 155528
+MD5sum: d1971ca864f2f9062e81ea59e94fc5fd
+SHA1: 0258792290ed3a8d00fab5c5c2ee00afac90a204
+SHA256: 53c30389227d4d16f1108a1df7ae1540c890378318335d1dc7ee95b7257f1f17
+SHA512: e262a604903de1daa9fe24c52f2fe5ac04274a5c9a73ab0d974adcb541087188b554e515e0c85dadb8cc47c1cf3220744f618d7c4e6d39a5e6078e2b807f7df0
+Description: add and remove users and groups
+Task: minimal, server-minimal
+Description-md5: 0e61515c925d932d3824e3dc6af2842b
+Build-Essential: yes
+
+Package: adsys
+Architecture: amd64
+Version: 0.8.4
+Built-Using: golang-1.18 (= 1.18-1ubuntu1)
+Priority: optional
+Section: admin
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 23148
+Depends: libc6 (>= 2.34), libpam0g (>= 0.99.7.1), libsmbclient (>= 2:4.0.3+dfsg1), init-system-helpers (>= 1.52), python3, python3-samba, samba-dsdb-modules, sssd, sssd-dbus
+Recommends: ubuntu-advantage-desktop-daemon
+Filename: pool/main/a/adsys/adsys_0.8.4_amd64.deb
+Size: 6203380
+MD5sum: 3b6fdb40dee30a4c0033df659b76aadf
+SHA1: 6375e9f07eb3b35ce3b19bf8fb3816246ef12f26
+SHA256: ca925028d4cf0cd89c07e31c4b1268930a15df855d420db9bde7d179e101be5a
+SHA512: de109ecb848a9c028a7ef0a75cfc315763453d98d54f913cf67afa1e4ea8dd0f709ae74929938811581efb7b8addef9e0bc70a0a2994ef419a7b1375be48aea3
+Homepage: https://github.com/ubuntu/adsys
+Description: AD SYStem integration
+Description-md5: 720becc0977ae4c845fb5e5c1a8cdc87
