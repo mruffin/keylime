@@ -205,7 +205,7 @@ class Allowlist:
         # list of paths for each debian package
         r = requests.get(path)
         open(name , 'wb').write(r.content)
-        time.sleep(2) ### Is this long enough??? DoSed the system
+        time.sleep(1) ### Is this long enough??? DoSed the system
 
         result = subprocess.run(['dpkg-deb', '-X', name, name.replace('.deb', '')], stdout=subprocess.PIPE).stdout.decode('utf-8')
 
@@ -310,58 +310,102 @@ def generateAllowlist(name):
 
 def updateRecord():
     #files with the most recent same packagename but diff versions are compared, one with most recent date stays, delete the other
-    recordFile = cfg.mainVars["recordName"]
+    recordFile = cfg.mainVars["recordName"]   
+    print(">>>> This the path to the record file", recordFile)
     recordFileTemp = cfg.mainVars["recordNameTemp"]
+    print(">>>> This the path to the Temp record file", recordFileTemp)
     addedpkg = [] #packages we have added to the Original Record
     oldPkgs = []
+    seenpkg = [] #all the original packages we've seen thus far
 
     #Step #1: Compare the records and add to the Original Record
-    with open(recordFileTemp, "r") as tempRecord:
-        for i in tempRecord:
-            newData = json.loads(i) #load each record and grab its key -- pkgname_version
-            ans = list(newData.keys())[0]
-            newpkg_name = ans.split("___")[0] #we just want the pkgname
-            newpkg_version = ans.split("___")[1]
+    #with open(recordFileTemp, "r") as tempRecord:
+    #    with open(recordFile, "a+", encoding='utf-8') as orgRecord:
+    
+    orgRecord = open(recordFile, "r+", encoding='utf-8')
+    tempRecord = open(recordFileTemp, "r")
+    
+    # s = orgRecord.read()
+    # print("This is the record file",s)
+    # for line in orgRecord:
+    #     lineDat = json.loads(line)
+    #     print(lineDat)
 
-            #do the same thing for the original record, since we need to go through every one of these
-            with open(recordFile, "a+", encoding='utf-8') as orgRecord:
-                seenpkg = [] #all the original packages we've seen thus far
-                for j in orgRecord: 
-                    print("This is the json record >>>>>> " + j)
-                    oldData = json.loads(j) #load each record and grab its key pkgname_version
-                    res = list(oldData.keys())[0]
-                    oldpkg_name = res.split("___")[0] #we just want the pkgname
-                    oldpkg_version = res.split("___")[1]
-                    #make a list of everything you've seen before and if at the end of loop package isn't in list add it to record
-                    seenpkg.append(res)
+    # t = tempRecord.read()
+    # print("This is the temp file",t)
+    # for linet in tempRecord:
+    #     tempdata = json.loads(linet)
+    #     print(tempdata)
 
-                    #The package name and version is same, it has not been updated
-                    if newpkg_name == oldpkg_name and newpkg_version == oldpkg_version:
-                        print(">>>> This package has the same name and version as another, move on")
-                    
-                    #The package name is the same but version is different, it has been updated
-                    elif newpkg_name == oldpkg_name and newpkg_version != oldpkg_version:
-                        print(">>>> Found pakages with same name and different versions, comparing dates")
+    #make a list of all packages that are in the orignal record
+    for k in orgRecord:
+        line = json.loads(k)
+        name = list(line.keys())[0]
+        seenpkg.append(name)
+    print("These are the packages that existed before the update", seenpkg)
 
-                        #if names are the same, compare the dates. This will pull the most recent package
-                        if datetime.strptime(newData[ans]["Date"] , "%m/%d/%y") > datetime.strptime(oldData[res]["Date"] , "%m/%d/%y"):
-                            print(">>>> Adding appropriate Package to Record")
+    orgRecord.seek(0)
+    #s = orgRecord.read()
+    for i in tempRecord:
+        print("First 4 loop....")
+        print("This is the temp json record >>>>>> " + i)
+        newData = json.loads(i) #load each record and grab its key -- pkgname_version
+        ans = list(newData.keys())[0]
+        newpkg_name = ans.split("___")[0] #we just want the pkgname
+        newpkg_version = ans.split("___")[1]
+        
+        #s = orgRecord.read()
+        #print("This is the record file", s)
+        for j in orgRecord: 
+            print("Second 4 loop....")
+            print("This is the orig json record >>>>>> " + j)
+            oldData = json.loads(j) #load each record and grab its key pkgname_version
+            res = list(oldData.keys())[0]
+            oldpkg_name = res.split("___")[0] #we just want the pkgname
+            oldpkg_version = res.split("___")[1]
+            #make a list of everything you've seen before and if at the end of loop package isn't in list add it to record
+            #seenpkg.append(res)
 
-                            json.dump(newData, orgRecord)
-                            orgRecord.write('\n')
-                            #put the new into a list to be tracked
-                            addedpkg.append(ans)
-                            #put the old into a list to be taken out later
-                            oldPkgs.append(res)
+            #The package name and version is same, it has not been updated
+            if newpkg_name == oldpkg_name and newpkg_version == oldpkg_version:
+                print(">>>> This package has the same name and version as another, move on")
+                seenpkg.append(res)
+                continue
             
-                #if you never find the same package name in the record file add the json record to old record
-                if ans not in seenpkg and ans not in addedpkg:
-                    print(">>>> This is a new Pacakge. Adding it to the Record")
+            #The package name is the same but version is different, it has been updated
+            elif newpkg_name == oldpkg_name and newpkg_version != oldpkg_version:
+                print(">>>> Found pakages with same name and different versions, comparing dates")
+                seenpkg.append(res)
+                #if names are the same, compare the dates. This will pull the most recent package
+                if datetime.strptime(newData[ans]["Date"] , "%m/%d/%y") > datetime.strptime(oldData[res]["Date"] , "%m/%d/%y"):
+                    print(">>>> Adding appropriate Package to Record")
+                    s = orgRecord.read()
                     json.dump(newData, orgRecord)
                     orgRecord.write('\n')
-            orgRecord.close()
+                    #put the new into a list to be tracked
+                    addedpkg.append(ans)
+                    #put the old into a list to be taken out later
+                    oldPkgs.append(res)
+                    #orgRecord.seek(0)
+                continue
+            else:
+                continue
+        #consider adding these to their own list and appending after both for loops
+
+        #print("These are the packages that existed before the update", seenpkg)
+        print("These are the old packages to replace: ", oldPkgs)
+        #if you never find the same package name in the record file add the json record to old record
+        if ans not in seenpkg and ans not in addedpkg:
+            print(">>>> This is a new Pacakge " + ans + " Adding it to the Record")
+            s = orgRecord.read()
+            json.dump(newData, orgRecord)
+            orgRecord.write('\n')
+            addedpkg.append(ans)
+        
+        orgRecord.seek(0)
+
     tempRecord.close()
-    
+    orgRecord.close()
     #Step 2 call the function to create the policies with all the new additions
     print(">>>> Making the Allowlist with the New Additions")
     allowlistVer = "allowlistOrig"    
@@ -378,6 +422,7 @@ def updateRecord():
             for line in orgRecord:
                 lineData = json.loads(line)
                 name = list(lineData.keys())[0]
+                print(name)
 
                 #write all packages that are not in oldpkg List
                 if name not in oldPkgs:
@@ -386,9 +431,8 @@ def updateRecord():
 
     #os.rename(recordFileTemp, recordFile)
     print(">>>> Moving files from temp to main")
-    shutil.move(recordFileTemp, recordFile )
+    shutil.copy(recordFileTemp, recordFile)
 
-       
     #Step 4 call the function to create the polices with removals
     print(">>>> Making the Allowlist with the old stuff removed")    
     allowlistVer = "allowlistUpdate" 
