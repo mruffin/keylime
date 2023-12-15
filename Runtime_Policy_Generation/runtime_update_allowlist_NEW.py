@@ -8,7 +8,9 @@ Runtime Integrity Monitoring
 '''
 How to run this script if you have amd64 Architecture working with Ubuuntu's Jammy
 
-python3 runtime_update_allowlist.py -x -v jammy -g -e
+python3 runtime_update_allowlist.py -x -v jammy -g -e (If you want to generate a new record)
+
+python3 runtime_update_allowlist.py -x -v jammy -u -e (If you want to update the record)
 
 '''
 
