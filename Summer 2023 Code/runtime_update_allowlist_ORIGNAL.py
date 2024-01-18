@@ -483,7 +483,7 @@ def write_allowlist(hashDict):
     # if this file doesn't exisit we will create it and begin appending measurements to it.
     # if it does exisit already (have previously run this script) then simply open it and append to it
     print(">>>> Writing package to allowlist")
-    with open("/tmp/allowlist_config/allowlist_update_nov3.txt", "a+") as f:
+    with open("/tmp/allowlist_config/allowlist_update_jan9.txt", "a+") as f:
         for i in hashDict:
             f.write(hashDict[i] + "  " + i + "\n")
     f.close()

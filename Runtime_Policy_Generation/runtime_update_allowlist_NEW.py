@@ -28,6 +28,7 @@ import re
 import json
 import zipfile
 from datetime import date, datetime
+from pathlib import Path
 import runtimeconf as cfg
 import download_release as dwn
 import clean_pkg_files as cln
@@ -286,12 +287,15 @@ class Allowlist:
             path = os.path.join(dir, f)
             #removeReadOnly(path)
             try:
-                shutil.rmtree(path)
+                shutil.rmtree(path, ignore_errors=True)
             except OSError:
+                #Path.rmdir(path)
                 os.remove(path)    
 
         os.chdir(dir)
         return
+    
+    ## libreoffice-common_7.3.2-0ubuntu2_all
 
 def generateAllowlist(name):
 
@@ -321,23 +325,9 @@ def updateRecord():
     seenpkg = [] #all the original packages we've seen thus far
 
     #Step #1: Compare the records and add to the Original Record
-    #with open(recordFileTemp, "r") as tempRecord:
-    #    with open(recordFile, "a+", encoding='utf-8') as orgRecord:
     
     orgRecord = open(recordFile, "r+", encoding='utf-8')
     tempRecord = open(recordFileTemp, "r")
-    
-    # s = orgRecord.read()
-    # print("This is the record file",s)
-    # for line in orgRecord:
-    #     lineDat = json.loads(line)
-    #     print(lineDat)
-
-    # t = tempRecord.read()
-    # print("This is the temp file",t)
-    # for linet in tempRecord:
-    #     tempdata = json.loads(linet)
-    #     print(tempdata)
 
     #make a list of all packages that are in the orignal record
     for k in orgRecord:
@@ -349,7 +339,6 @@ def updateRecord():
     orgRecord.seek(0)
     #s = orgRecord.read()
     for i in tempRecord:
-        print("First 4 loop....")
         print("This is the temp json record >>>>>> " + i)
         newData = json.loads(i) #load each record and grab its key -- pkgname_version
         ans = list(newData.keys())[0]
@@ -359,7 +348,6 @@ def updateRecord():
         #s = orgRecord.read()
         #print("This is the record file", s)
         for j in orgRecord: 
-            print("Second 4 loop....")
             print("This is the orig json record >>>>>> " + j)
             oldData = json.loads(j) #load each record and grab its key pkgname_version
             res = list(oldData.keys())[0]
@@ -392,7 +380,6 @@ def updateRecord():
                 continue
             else:
                 continue
-        #consider adding these to their own list and appending after both for loops
 
         #print("These are the packages that existed before the update", seenpkg)
         print("These are the old packages to replace: ", oldPkgs)
@@ -564,16 +551,8 @@ def main():
        allow1.create_allowlist_update(status)
        os.chdir(cfg.mainVars["tmpDir"])
        
-       #give me the first version of the allowlist based off everything in record --- We uncompressed the zip file 
-       '''allowlistVer = "allowlistOrig"    
-       generateAllowlist(allowlistVer)'''
-
        #call the update record function to get rid of old stuff
        updateRecord()
-
-       #generate the allowlist again from the record ### pass in the name of the allowlist
-       '''allowlistVer = "allowlistUpdate" 
-       generateAllowlist(allowlistVer)'''
 
        #record state
        #changeRecordState()
