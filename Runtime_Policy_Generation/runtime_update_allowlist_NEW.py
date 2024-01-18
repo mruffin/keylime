@@ -287,7 +287,7 @@ class Allowlist:
             path = os.path.join(dir, f)
             #removeReadOnly(path)
             try:
-                shutil.rmtree(path, ignore_errors=True)
+                shutil.rmtree(path) #, ignore_errors=True
             except OSError:
                 #Path.rmdir(path)
                 os.remove(path)    
