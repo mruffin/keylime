@@ -33,6 +33,7 @@ import runtimeconf as cfg
 import download_release as dwn
 import clean_pkg_files as cln
 import create_compare_release as cc
+from collections import defaultdict
 
 '''
 must have zstd installed. For Mac == brew install zstd
@@ -102,6 +103,7 @@ class Allowlist:
                             st = os.stat(file_name) 
                             exec_perm = bool(st.st_mode & stat.S_IXUSR or st.st_mode & stat.S_IXGRP or st.st_mode & stat.S_IXOTH)
                             dynamic_match = re.findall("\.so(.*)$", file_name)
+                            #kernal_match = re.findall("\.ko(.*)$", file_name)
                             if exec_perm == True:
                                 #print(True)
                                 print(">>>> This file " + file_name + " is an executable ... Do not Ignore")
@@ -112,6 +114,11 @@ class Allowlist:
                                 print(">>>> This file " + file_name + " is an executable ... Do not Ignore")
                                 hash = self.take_measurement(file_name, k)
                                 os.chdir(startDir + pkgname)
+                            # elif kernal_match:
+                            # #elif file_name.endswith('.ko'):
+                            #     print(">>>> This file " + file_name + " is an kernal library ... Do not Ignore")
+                            #     hash = self.take_measurement(file_name, k)
+                            #     os.chdir(startDir + pkgname)
                             else:
                                 print(">>>> This file " + file_name + " is not an executable ... Ignore") 
                                 os.chdir(startDir + pkgname)
@@ -125,6 +132,7 @@ class Allowlist:
                         st = os.stat(file_name) 
                         exec_perm = bool(st.st_mode & stat.S_IXUSR or st.st_mode & stat.S_IXGRP or st.st_mode & stat.S_IXOTH)
                         dynamic_match = re.findall("\.so(.*)$", file_name)
+                        #kernal_match = re.findall("\.ko(.*)$", file_name)
                         if exec_perm == True:
                             print(">>>> This file " + file_name + " is an executable ... Do not Ignore")
                             hash = self.take_measurement(file_name, k)
@@ -134,6 +142,11 @@ class Allowlist:
                             print(">>>> This file " + file_name + " is an executable ... Do not Ignore")
                             hash = self.take_measurement(file_name, k)
                             os.chdir(startDir + pkgname)
+                        # elif kernal_match:    
+                        # #elif file_name.endswith('.ko'):
+                        #     print(">>>> This file " + file_name + " is an kernal library ... Do not Ignore")
+                        #     hash = self.take_measurement(file_name, k)
+                        #     os.chdir(startDir + pkgname)
                         else:
                             print(">>>> This file " + file_name + " is not an executable ... Ignore") 
                             os.chdir(startDir + pkgname)
@@ -285,17 +298,28 @@ class Allowlist:
 
         for f in os.listdir(dir):
             path = os.path.join(dir, f)
-            #removeReadOnly(path)
-            try:
-                shutil.rmtree(path) #, ignore_errors=True
-            except OSError:
-                #Path.rmdir(path)
-                os.remove(path)    
 
+            if os.path.isfile(path):
+                os.remove(path)
+            else:
+                #make_writeable_recursive(path, 0o777)
+                shutil.rmtree(path, onerror=on_rm_error) #, ignore_errors=True, onerror=on_rm_error 
         os.chdir(dir)
         return
     
-    ## libreoffice-common_7.3.2-0ubuntu2_all
+""" def make_writeable_recursive(path, mode):
+    for root, dirs, files in os.walk(path, topdown=False):
+        for dir in [os.path.join(root, d) for d in dirs]:
+            os.chmod(dir, mode)
+        for file in [os.path.join(root, f) for f in files]:
+            if os.path.islink(file):
+                os.unlink(file)
+            else:
+                os.chmod(file, mode)  """       
+
+def on_rm_error(func, path, exc_info):
+    os.chmod(path, 0o777) #stat.S_IRUSR |
+    func(path)
 
 def generateAllowlist(name):
 
@@ -334,7 +358,7 @@ def updateRecord():
         line = json.loads(k)
         name = list(line.keys())[0]
         seenpkg.append(name)
-    print("These are the packages that existed before the update", seenpkg)
+    #print("These are the packages that existed before the update", seenpkg)
 
     orgRecord.seek(0)
     #s = orgRecord.read()
@@ -382,7 +406,7 @@ def updateRecord():
                 continue
 
         #print("These are the packages that existed before the update", seenpkg)
-        print("These are the old packages to replace: ", oldPkgs)
+        #print("These are the old packages to replace: ", oldPkgs)
         #if you never find the same package name in the record file add the json record to old record
         if ans not in seenpkg and ans not in addedpkg:
             print(">>>> This is a new Pacakge " + ans + " Adding it to the Record")
@@ -400,7 +424,11 @@ def updateRecord():
     allowlistVer = "allowlistOrig"    
     generateAllowlist(allowlistVer)
 
-    #Step 3 remove the old from the record list
+    os.remove(recordFileTemp)
+
+    return  #placed here until Keylime Issue is solved
+
+"""     #Step 3 remove the old from the record list
     #Clear out contents of temp file because we want to replace them for now. 
     open(recordFileTemp, 'w').close()
 
@@ -425,11 +453,11 @@ def updateRecord():
     #Step 4 call the function to create the polices with removals
     print(">>>> Making the Allowlist with the old stuff removed")    
     allowlistVer = "allowlistUpdate" 
-    generateAllowlist(allowlistVer)
+    generateAllowlist(allowlistVer) 
 
     #After it is all said and done, delete the temp record
     #os.remove(recordFileTemp)
-    return
+    return"""
 
 # alternate state of the record based on whether a zip file or .json file is present
 def changeRecordState():
@@ -478,20 +506,22 @@ def main():
     group2.add_argument("-u", "--update", help="Update exisiting main allowlist with new releases", action="store_true")
     group2.add_argument("-g", "--generate", help="Create new release allowlist to append to main Allowlist", action="store_true")
 
-    #parser.add_argument("-o", "--output_file", help="Output file path",required = True, action="store")
-
     # print help if no arguments provided
     if len(sys.argv) == 1:
         parser.print_help()
         parser.exit()
 
+    #### Experiment Paramaters ####
+    start_time = datetime.now()
+    cfg.updateLog["start_time"] = start_time
+
     args = parser.parse_args()
     dwn.dowload_new_release(args.amd64, args.i386, args.version, args.update, args.generate)
 
     ### Purely for testing purposes ###
-    #masterUniPath = '/home/mruffin2/Research/Keylime/keylime/Runtime_Policy_Generation/allowlist_config/TestPackageFileUpdate.txt'
-    #masterDict = cln.clean_package_file(masterUniPath)
-    #os.chdir(cfg.mainVars["tmpDir"])
+    '''masterUniPath = '/home/mruffin2/Research/Keylime/keylime/Runtime_Policy_Generation/allowlist_config/TestPackageFileUpdate.txt'
+    masterDict = cln.clean_package_file(masterUniPath)
+    os.chdir(cfg.mainVars["tmpDir"])'''
 
     
     # clean the package files (i.e. turn them into easily readable dictionaries) -- These dictionaries will serve as the basis for my Class Objects
@@ -508,15 +538,15 @@ def main():
         master.create_allowlist_update(status)
         os.chdir(cfg.mainVars["tmpDir"])'''
 
-
         #compare update to security to see what files and their versions are the same 
         pkgDict1 = cc.compare_sec_and_update(updateDict, securityDict)
-        
+        print('>>>> There are ' + str(len(mainDict.keys())) + ' Main Repo Packages')
+        cfg.updateLog["mainrepository_packages"] = len(mainDict.keys())
+
         print("\n >>> Measuring the Main Repository....\n")
         allow1 = Allowlist(mainDict, args.exec)
         allow1.create_allowlist_update(status)
         os.chdir(cfg.mainVars["tmpDir"])
-
 
         allow2 = Allowlist(pkgDict1, args.exec)
         allow2.create_allowlist_update(status)
@@ -528,6 +558,15 @@ def main():
         #changeRecordState()
 
 
+
+        #### Experiment Paramaters ####
+        end_time = datetime.now()
+        cfg.updateLog["end_time"] = end_time
+        cfg.updateLog["diff_time"] = end_time - start_time
+
+        with open(cfg.experiment["update_log"], "a") as f:
+            json.dump(cfg.updateLog, f, indent=4, default=str)
+
     elif args.update:
        
        #uncompress the record first and then update it ... adding stuff to the record
@@ -538,7 +577,6 @@ def main():
        '''master = Allowlist(masterDict, args.exec)
        master.create_allowlist_update(status)
        os.chdir(cfg.mainVars["tmpDir"])'''
-
 
        #returns the difference between the two file types old vs new
        update = cc.create_diff_release(updateDict, fileType='update')
@@ -553,6 +591,16 @@ def main():
        
        #call the update record function to get rid of old stuff
        updateRecord()
+       
+
+
+       #### Experiment Paramaters ####
+       end_time = datetime.now()
+       cfg.updateLog["end_time"] = end_time
+       cfg.updateLog["diff_time"] = end_time - start_time
+       
+       with open(cfg.experiment["update_log"], "a") as f:
+            json.dump(cfg.updateLog, f, indent=4, default=str)
 
        #record state
        #changeRecordState()

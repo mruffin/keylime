@@ -36,8 +36,10 @@ def dowload_new_release(amd, intel, version, update, generate):
     if os.path.exists(cfg.mainVars['tmpDir']):
         os.chdir(cfg.mainVars['tmpDir'])
     else:
-        os.mkdir('allowlist_config/')
-        os.chdir('allowlist_config/')
+        os.mkdir('/scratch/allowlist_config/')
+        os.chdir('/scratch/allowlist_config/')
+        #os.mkdir('allowlist_config/')
+        #os.chdir('allowlist_config/')
 
     if amd == True:
         binary = "binary-amd64"

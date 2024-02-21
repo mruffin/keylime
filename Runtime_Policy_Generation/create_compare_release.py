@@ -1,7 +1,8 @@
 import runtimeconf as cfg
 import clean_pkg_files as cln
 import sys
-
+from datetime import date, datetime
+from collections import defaultdict
 
 # compare the previous release stored on your machine to the current release. Find the differneces and target those for the update
 def create_diff_release(currentFileDict, fileType):
@@ -29,6 +30,9 @@ def create_diff_release(currentFileDict, fileType):
             count += 1
     print(">>>> " + str(count) + " " + fileType + " packages have been add to the repo")
 
+    #### Experiment Paramaters ####
+    cfg.updateLog["added_files"][fileType] = count
+
     count2 = 0 
     # see if the version of the pkg has changed
     for i in curentFileList:
@@ -38,9 +42,52 @@ def create_diff_release(currentFileDict, fileType):
                 finalList.append(i)
                 count2 +=1 
     print(">>>> " + str(count2) + " " + fileType + " packages have been updated")
+
+    #### Experiment Paramaters ####
+    cfg.updateLog["updated_files"][fileType] = count2
+
     # for each pkg in the final list add the pkgname as the key and the valueDict as the value
     for i in finalList:
         finalDict[i] = currentFileDict[i]
+
+
+    # Package Priority Types: Essential, Required, Important, Standard, Optional, or Extra
+    essential = 0
+    required = 0
+    important = 0
+    standard = 0 
+    optional = 0
+    extra = 0
+
+
+
+    for i in finalList:
+        print(finalDict[i]["Priority"])
+
+        if finalDict[i]["Priority"] == " essential":
+            essential += 1
+
+        elif finalDict[i]["Priority"] == " required":
+            required += 1
+
+        elif finalDict[i]["Priority"] == " important":
+            important += 1
+
+        elif finalDict[i]["Priority"] == " standard":
+            standard += 1
+
+        elif finalDict[i]["Priority"] == " optional":
+            optional += 1
+
+        elif finalDict[i]["Priority"] == " extra":
+            extra += 1
+
+    cfg.updateLog["priority"][fileType]["essential"] = essential
+    cfg.updateLog["priority"][fileType]["required"] = required
+    cfg.updateLog["priority"][fileType]["important"] = important
+    cfg.updateLog["priority"][fileType]["standard"] = standard
+    cfg.updateLog["priority"][fileType]["optional"] = optional
+    cfg.updateLog["priority"][fileType]["extra"] = extra
 
     return  finalDict
 
@@ -83,9 +130,15 @@ def compare_sec_and_update(updateDict, securityDict):
 
     print('>>>> There are ' + str(len(uniqueUpdatesFiles)) + ' unique Update Packages')
     print('>>>> There are ' + str(len(uniqueSecurityFiles)) + ' unique Security Packages')
-    print('>>>> There are ' + str(len(potentialDuplicateFiles)) + ' Packages with the same name and same version')
+    print('>>>> There are ' + str(len(potentialDuplicateFiles)) + ' Packages with the same name and diff version')
     print('>>>> There are ' + str(len(realDuplicateFiles)) + ' real duplicate files between Security and Update Releases')
 
+
+    #### Experiment Paramaters ####
+    cfg.updateLog["uniqueName_update_packages"] = len(uniqueUpdatesFiles)
+    cfg.updateLog["uniqueName_security_packages"] = len(uniqueSecurityFiles)
+    cfg.updateLog["sameName_diffVersion_packages"] = len(potentialDuplicateFiles)
+    cfg.updateLog["sameName_sameVersion_packages"] = len(realDuplicateFiles)
 
     #put a clause here that if all of these values are 0, no additions and no changes, we do not need to preform an update
     #sys.exit the program
@@ -100,22 +153,29 @@ def compare_sec_and_update(updateDict, securityDict):
     for i in uniqueUpdatesFiles:
         name = str(i + '__' + updateDict[i]['Version'])
         finalDict[name] = updateDict[i]
+    print("unique update ", len(uniqueUpdatesFiles))
 
     for k in uniqueSecurityFiles:
         name = str(k + '__' + securityDict[k]['Version'])
         finalDict[name] = securityDict[k]
+    print("unique sec ", len(uniqueSecurityFiles))
 
     for l in potentialDuplicateFiles:
         name = str(l + '__' + updateDict[l]['Version'])
         finalDict[name] = updateDict[l]
+    print("potential duplicates ", len(potentialDuplicateFiles))
 
     for j in potentialDuplicateFiles:
         name = str(j + '__' + securityDict[j]['Version'])
         finalDict[name] = securityDict[j]
+    print("potential duplicates ", len(potentialDuplicateFiles))
 
     for m in realDuplicateFiles:
         name = str(m + '__' + updateDict[m]['Version'])
         finalDict[name] = updateDict[m]
+    print("real duplicates ", len(realDuplicateFiles))
+
+    cfg.updateLog["NumberOfPkgs"] = len(finalDict.keys())
     
     #for i in finalDict.keys():
     #    print(i)
