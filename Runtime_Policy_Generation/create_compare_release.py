@@ -3,6 +3,7 @@ import clean_pkg_files as cln
 import sys
 from datetime import date, datetime
 from collections import defaultdict
+import json
 
 # compare the previous release stored on your machine to the current release. Find the differneces and target those for the update
 def create_diff_release(currentFileDict, fileType):
@@ -58,8 +59,6 @@ def create_diff_release(currentFileDict, fileType):
     standard = 0 
     optional = 0
     extra = 0
-
-
 
     for i in finalList:
         print(finalDict[i]["Priority"])
@@ -144,6 +143,13 @@ def compare_sec_and_update(updateDict, securityDict):
     #sys.exit the program
     if len(uniqueUpdatesFiles) == 0 and len(uniqueSecurityFiles) == 0 and len(potentialDuplicateFiles) == 0 and len(realDuplicateFiles) == 0:
         print(">>>> There are no packages to be updated, program will exit") 
+        cfg.updateLog["update_status"] = "No Modifications made today"
+        end_time = datetime.now()
+        cfg.updateLog["end_time"] = end_time
+
+        with open(cfg.experiment["update_log"], "a") as f:
+            json.dump(cfg.updateLog, f, indent=4, default=str)
+
         sys.exit("Program Completed")
     
     print('>>>> Creating final list')
@@ -177,7 +183,4 @@ def compare_sec_and_update(updateDict, securityDict):
 
     cfg.updateLog["NumberOfPkgs"] = len(finalDict.keys())
     
-    #for i in finalDict.keys():
-    #    print(i)
-    #print(len(finalDict.keys()))
     return finalDict

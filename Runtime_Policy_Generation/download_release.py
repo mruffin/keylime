@@ -15,11 +15,11 @@ def download_new_release_files(path, filename):
             with open(filename.replace('.gz', ''), 'wb') as f_out:
                 print(">>>> Opening File " + filename + "...")
                 shutil.copyfileobj(f_in, f_out)
-        print(">>>> Extracting file from " + filename + "...")
-        print()
+        print(">>>> Extracting file from " + filename + "...\n")
+        
     except:
-        print(">>>> The " +  filename + " Package file was not able to be downloaded and/or extracted")
-        print()
+        print(">>>> The " +  filename + " Package file was not able to be downloaded and/or extracted\n")
+        
         sys.exit(1)
     return
 
