@@ -363,7 +363,7 @@ def updateRecord():
     orgRecord.seek(0)
     #s = orgRecord.read()
     for i in tempRecord:
-        print("This is the temp json record >>>>>> " + i)
+        #print("This is the temp json record >>>>>> " + i)
         newData = json.loads(i) #load each record and grab its key -- pkgname_version
         ans = list(newData.keys())[0]
         newpkg_name = ans.split("___")[0] #we just want the pkgname
@@ -372,7 +372,7 @@ def updateRecord():
         #s = orgRecord.read()
         #print("This is the record file", s)
         for j in orgRecord: 
-            print("This is the orig json record >>>>>> " + j)
+            #print("This is the orig json record >>>>>> " + j)
             oldData = json.loads(j) #load each record and grab its key pkgname_version
             res = list(oldData.keys())[0]
             oldpkg_name = res.split("___")[0] #we just want the pkgname
@@ -565,7 +565,8 @@ def main():
         cfg.updateLog["diff_time"] = end_time - start_time
 
         with open(cfg.experiment["update_log"], "a") as f:
-            json.dump(cfg.updateLog, f, indent=4, default=str)
+            json.dump(cfg.updateLog, f, default=str)
+            f.write(",\n")
 
     elif args.update:
        
@@ -600,7 +601,8 @@ def main():
        cfg.updateLog["diff_time"] = end_time - start_time
        
        with open(cfg.experiment["update_log"], "a") as f:
-            json.dump(cfg.updateLog, f, indent=4, default=str)
+            json.dump(cfg.updateLog, f, default=str)
+            f.write(",\n")
 
        #record state
        #changeRecordState()

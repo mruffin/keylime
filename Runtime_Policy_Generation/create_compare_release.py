@@ -61,7 +61,7 @@ def create_diff_release(currentFileDict, fileType):
     extra = 0
 
     for i in finalList:
-        print(finalDict[i]["Priority"])
+        #print(finalDict[i]["Priority"])
 
         if finalDict[i]["Priority"] == " essential":
             essential += 1
@@ -148,7 +148,8 @@ def compare_sec_and_update(updateDict, securityDict):
         cfg.updateLog["end_time"] = end_time
 
         with open(cfg.experiment["update_log"], "a") as f:
-            json.dump(cfg.updateLog, f, indent=4, default=str)
+            json.dump(cfg.updateLog, f, default=str)
+            f.write(",\n")
 
         sys.exit("Program Completed")
     
@@ -159,27 +160,27 @@ def compare_sec_and_update(updateDict, securityDict):
     for i in uniqueUpdatesFiles:
         name = str(i + '__' + updateDict[i]['Version'])
         finalDict[name] = updateDict[i]
-    print("unique update ", len(uniqueUpdatesFiles))
+    #print("unique update ", len(uniqueUpdatesFiles))
 
     for k in uniqueSecurityFiles:
         name = str(k + '__' + securityDict[k]['Version'])
         finalDict[name] = securityDict[k]
-    print("unique sec ", len(uniqueSecurityFiles))
+    #print("unique sec ", len(uniqueSecurityFiles))
 
     for l in potentialDuplicateFiles:
         name = str(l + '__' + updateDict[l]['Version'])
         finalDict[name] = updateDict[l]
-    print("potential duplicates ", len(potentialDuplicateFiles))
+    #print("potential duplicates ", len(potentialDuplicateFiles))
 
     for j in potentialDuplicateFiles:
         name = str(j + '__' + securityDict[j]['Version'])
         finalDict[name] = securityDict[j]
-    print("potential duplicates ", len(potentialDuplicateFiles))
+    #print("potential duplicates ", len(potentialDuplicateFiles))
 
     for m in realDuplicateFiles:
         name = str(m + '__' + updateDict[m]['Version'])
         finalDict[name] = updateDict[m]
-    print("real duplicates ", len(realDuplicateFiles))
+    #print("real duplicates ", len(realDuplicateFiles))
 
     cfg.updateLog["NumberOfPkgs"] = len(finalDict.keys())
     
