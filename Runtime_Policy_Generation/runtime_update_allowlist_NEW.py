@@ -566,7 +566,8 @@ def main():
 
         with open(cfg.experiment["update_log"], "a") as f:
             json.dump(cfg.updateLog, f, default=str)
-            f.write(",\n")
+            f.write(",")
+            f.write("\n")
 
     elif args.update:
        
@@ -602,7 +603,8 @@ def main():
        
        with open(cfg.experiment["update_log"], "a") as f:
             json.dump(cfg.updateLog, f, default=str)
-            f.write(",\n")
+            f.write(",")
+            f.write("\n")
 
        #record state
        #changeRecordState()

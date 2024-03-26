@@ -22,7 +22,8 @@ def main():
 
     with open("/home/mruffin2/Research/Keylime/keylime/Runtime_Policy_Generation/Experiment/time_log.json", "a") as f:
         json.dump(time_log, f, default=str)
-        f.write(",\n")
+        f.write(",")
+        f.write("\n")
 
 
 if __name__ == "__main__":

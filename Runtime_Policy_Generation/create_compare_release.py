@@ -149,7 +149,8 @@ def compare_sec_and_update(updateDict, securityDict):
 
         with open(cfg.experiment["update_log"], "a") as f:
             json.dump(cfg.updateLog, f, default=str)
-            f.write(",\n")
+            f.write(",")
+            f.write("\n")
 
         sys.exit("Program Completed")
     
